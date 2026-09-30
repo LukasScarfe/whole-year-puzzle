@@ -8,49 +8,51 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 :root {
-  --bg: #f2f3ef;
-  --surface: #fcfcfb;
-  --ink: #15171a;
-  --ink-2: #50535a;
-  --muted: #7d8187;
-  --line: #e1e2dc;
-  --axis: #c3c4bd;
-  --cell: #e6e7e1;
-  --date: #f5dc7a;
-  --date-ink: #3b3005;
-  --hatch: #cfd0c9;
-  --ring: rgba(21, 23, 26, 0.10);
-  --focus: #256abf;
-  --s1: #2a78d6;
-  --s2: #eb6834;
-  --p0: #2a78d6; --p1: #eb6834; --p2: #1baf7a; --p3: #eda100; --p4: #e87ba4;
-  --p5: #008300; --p6: #4a3aa7; --p7: #e34948; --p8: #8a6a4f;
-  --dark: 0;
+  /* Colours from lukasscarfe.com (Blowfish theme). Dark green is the default, like the site. */
+  color-scheme: dark;
+  --bg: #173118;        /* neutral-800 */
+  --surface: #1c3a1d;
+  --ink: #ffffff;       /* headings */
+  --ink-2: #90cb92;     /* body text, neutral-300 */
+  --muted: #5cb25f;     /* neutral-400 */
+  --line: #244c25;      /* neutral-700 */
+  --axis: #316833;      /* neutral-600 */
+  --cell: #244c25;
+  --date: #6b4e88;      /* primary-600, the site's button purple */
+  --date-ink: #ffffff;
+  --hatch: #316833;
+  --ring: rgba(255, 255, 255, 0.12);
+  --focus: #a58ebe;     /* primary-400 */
+  --s1: #47c9d2;        /* teal accent */
+  --s2: #a58ebe;        /* lavender accent */
+  --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
+  --p5: #e2d6c3; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
+  --dark: 1;
   --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #101113; --surface: #191a1c; --ink: #f2f2ef; --ink-2: #c3c2b9; --muted: #8b8e94;
-    --line: #2b2c2f; --axis: #3b3c40; --cell: #26272a; --date: #6b5a17; --date-ink: #fff3c4;
-    --hatch: #34353a; --ring: rgba(255, 255, 255, 0.10); --focus: #6da7ec;
-    --s1: #3987e5; --s2: #d95926;
-    --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
-    --p5: #1f8f1f; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
-    --dark: 1;
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #101113; --surface: #191a1c; --ink: #f2f2ef; --ink-2: #c3c2b9; --muted: #8b8e94;
-  --line: #2b2c2f; --axis: #3b3c40; --cell: #26272a; --date: #6b5a17; --date-ink: #fff3c4;
-  --hatch: #34353a; --ring: rgba(255, 255, 255, 0.10); --focus: #6da7ec;
-  --s1: #3987e5; --s2: #d95926;
-  --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
-  --p5: #1f8f1f; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
-  --dark: 1;
+:root[data-theme="light"] {
+  /* The site's light appearance: dusty pink ground, red-tinted neutrals, teal primary. */
+  color-scheme: light;
+  --bg: #e6dcdc;        /* neutral */
+  --surface: #f3eded;
+  --ink: #160000;       /* neutral-800 */
+  --ink-2: #3e0000;     /* neutral-700 */
+  --muted: #6f6f6f;     /* secondary-700 */
+  --line: #d6c6c6;
+  --axis: #bca6a6;
+  --cell: #d9cccc;
+  --date: #207e84;      /* primary-600 */
+  --date-ink: #ffffff;
+  --hatch: #cbbcbc;
+  --ring: rgba(22, 0, 0, 0.10);
+  --focus: #207e84;
+  --s1: #207e84;        /* teal */
+  --s2: #7f5da2;        /* purple */
+  --p0: #2a78d6; --p1: #eb6834; --p2: #1baf7a; --p3: #eda100; --p4: #e87ba4;
+  --p5: #008300; --p6: #4a3aa7; --p7: #e34948; --p8: #8a6a4f;
+  --dark: 0;
 }
 
 * { box-sizing: border-box; }
@@ -229,6 +231,7 @@ footer.src a { color: var(--ink-2); }
       <select id="day" aria-label="Day"></select>
       <button class="icon-btn" id="next-day" aria-label="Next date">&#8250;</button>
       <button class="text-btn" id="today">Today</button>
+      <button class="icon-btn" id="theme-toggle" aria-label="Switch to light mode">&#9788;</button>
     </div>
   </div>
 </div>
@@ -244,7 +247,7 @@ footer.src a { color: var(--ink-2); }
       </div>
       <div class="boardcard">
         <canvas id="board-empty"></canvas>
-        <div class="cap">The board for this date — the two gold cells stay uncovered.</div>
+        <div class="cap">The board for this date — the two highlighted cells stay uncovered.</div>
       </div>
       <div class="boardcard">
         <canvas id="board-consensus"></canvas>
@@ -465,7 +468,7 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 /**
  * Draw a board. fills[i] = colour or null; groups[i] = piece id (cells of the same group are joined);
- * texts[i] = label drawn in the cell; dateCells get the gold highlight.
+ * texts[i] = label drawn in the cell; dateCells get the date highlight.
  */
 function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells = [], alpha = [], textColors = [], ring = null }) {
   const s = S[k];
@@ -853,7 +856,7 @@ function pairMatrix(k) {
   }
   out += `<text x="${L + 12 * cs + 6}" y="${T + 12 * cs - 4}" font-size="12" fill="${C.ink}">↙ outlined: month + day (the date settings)</text>`;
   document.getElementById('pairs').innerHTML = out + '</svg>';
-  rampLegend(document.getElementById('pairs-ramp'), lo, hi, 'solutions · black = none', mid);
+  rampLegend(document.getElementById('pairs-ramp'), lo, hi, `solutions · ${C.dark ? 'white' : 'black'} = none`, mid);
   document.getElementById('pairs-sub').textContent =
     `The board can be tiled with any two cells left open, not just a month and a day. Each square is one pair; ` +
     `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
@@ -1205,8 +1208,21 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointerleave', () => { tip.hidden = true; });
 
 /* theme changes → redraw */
-function rethemed() { readColors(); render(); }
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rethemed); } catch (e) {}
+function rethemed() { readColors(); syncThemeButton(); render(); }
+/* Dark green by default, like lukasscarfe.com; the toggle switches to its light scheme and is remembered. */
+const themeBtn = document.getElementById('theme-toggle');
+const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+function syncThemeButton() {
+  themeBtn.innerHTML = isLight() ? '&#9790;' : '&#9788;';
+  themeBtn.setAttribute('aria-label', isLight() ? 'Switch to dark mode' : 'Switch to light mode');
+}
+themeBtn.onclick = () => {
+  const next = isLight() ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('wya-theme', next); } catch (e) {}
+};
+try { const t = localStorage.getItem('wya-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+syncThemeButton();
 new MutationObserver(rethemed).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 readColors();
