@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<title>Whole Year Atlas</title>
+<title>The Whole Year Puzzle Solutions</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,8 +25,6 @@
   --focus: #a58ebe;     /* primary-400 */
   --s1: #47c9d2;        /* teal accent */
   --s2: #a58ebe;        /* lavender accent */
-  --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
-  --p5: #e2d6c3; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
   --dark: 1;
   --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -50,8 +48,6 @@
   --focus: #207e84;
   --s1: #207e84;        /* teal */
   --s2: #7f5da2;        /* purple */
-  --p0: #2a78d6; --p1: #eb6834; --p2: #1baf7a; --p3: #eda100; --p4: #e87ba4;
-  --p5: #008300; --p6: #4a3aa7; --p7: #e34948; --p8: #8a6a4f;
   --dark: 0;
 }
 
@@ -76,14 +72,20 @@ button, select { font: inherit; color: inherit; }
   margin: 0 -16px; padding: 12px 16px;
 }
 .top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
-.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand { display: flex; align-items: center; gap: 6px 14px; margin-right: auto; flex-wrap: wrap; }
+.brand .me { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-size: 16px; font-weight: 500; }
+.brand .me img { width: 40px; height: 40px; display: block; }
+.brand .me .logo-light { display: none; }
+:root[data-theme="light"] .brand .me .logo-light { display: block; }
+:root[data-theme="light"] .brand .me .logo-dark { display: none; }
 .brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-.brand span { color: var(--muted); font-size: 13px; }
 .tabs, .seg { display: inline-flex; background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
 .tabs button, .seg button {
   border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer;
   font-size: 14px; font-weight: 500; color: var(--ink-2); white-space: nowrap;
 }
+.seg button { display: inline-flex; align-items: center; gap: 7px; }
+.seg svg { display: block; flex: none; }
 .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] {
   background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
 }
@@ -95,6 +97,10 @@ button, select { font: inherit; color: inherit; }
   border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; width: 32px; height: 32px;
   cursor: pointer; display: inline-grid; place-items: center; font-size: 15px; line-height: 1;
 }
+/* Borderless icon button, as in the lukasscarfe.com header. */
+.theme-btn { border: 0; background: none; padding: 4px; cursor: pointer; color: var(--ink-2); display: inline-grid; place-items: center; }
+.theme-btn:hover { color: var(--focus); }
+.theme-btn svg { width: 20px; height: 20px; display: block; }
 .text-btn { border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 14px; }
 
 /* ---------- solutions view ---------- */
@@ -102,13 +108,10 @@ button, select { font: inherit; color: inherit; }
   display: grid; grid-template-columns: minmax(0, 1.2fr) auto auto; gap: 28px; align-items: start;
   padding-block: 28px 20px;
 }
-.day-title .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--muted); font-weight: 600; }
 .day-title h2 { font-size: clamp(34px, 6vw, 56px); line-height: 1.02; font-weight: 700; letter-spacing: -0.02em; margin-top: 4px; }
-.count-line { margin-top: 14px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.count-line .big { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1; }
-.count-line .lbl { color: var(--ink-2); }
-.facts { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; color: var(--ink-2); font-size: 14px; }
-.facts b { color: var(--ink); font-weight: 600; }
+.day-stat { margin: 12px 0 0; font-size: 20px; line-height: 1.35; color: var(--ink-2); }
+.day-stat + .day-stat { margin-top: 4px; }
+.day-stat b { color: var(--ink); font-weight: 600; }
 .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--date); color: var(--date-ink); vertical-align: middle; }
 .boardcard { display: grid; gap: 6px; justify-items: start; }
 .boardcard .cap { font-size: 12px; color: var(--muted); max-width: 250px; }
@@ -216,7 +219,13 @@ footer.src a { color: var(--ink-2); }
 
 <div class="top">
   <div class="wrap">
-    <div class="brand"><h1>Whole Year Atlas</h1><span>every solution, every date</span></div>
+    <div class="brand">
+      <a class="me" href="https://lukasscarfe.com/">
+        <img class="logo-dark" src="logo-dark.png" alt=""><img class="logo-light" src="logo-light.png" alt="">
+        <span>Lukas Scarfe</span>
+      </a>
+      <h1>The Whole Year Puzzle Solutions</h1>
+    </div>
     <div class="tabs" role="group" aria-label="View">
       <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
       <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
@@ -231,7 +240,7 @@ footer.src a { color: var(--ink-2); }
       <select id="day" aria-label="Day"></select>
       <button class="icon-btn" id="next-day" aria-label="Next date">&#8250;</button>
       <button class="text-btn" id="today">Today</button>
-      <button class="icon-btn" id="theme-toggle" aria-label="Switch to light mode">&#9788;</button>
+      <button class="theme-btn" id="theme-toggle" aria-label="Switch to light mode"></button>
     </div>
   </div>
 </div>
@@ -240,14 +249,13 @@ footer.src a { color: var(--ink-2); }
   <div id="view-solutions">
     <div class="day-head">
       <div class="day-title">
-        <div class="eyebrow" id="d-eyebrow"></div>
         <h2 id="d-title"></h2>
-        <div class="count-line"><span class="big num" id="d-count"></span><span class="lbl" id="d-count-lbl"></span></div>
-        <ul class="facts" id="d-facts"></ul>
+        <p class="day-stat" id="d-count"></p>
+        <p class="day-stat" id="d-rank"></p>
       </div>
       <div class="boardcard">
         <canvas id="board-empty"></canvas>
-        <div class="cap">The board for this date — the two highlighted cells stay uncovered.</div>
+        <div class="cap">The board for this date — the two open cells stay uncovered.</div>
       </div>
       <div class="boardcard">
         <canvas id="board-consensus"></canvas>
@@ -421,8 +429,20 @@ function readColors() {
   const g = n => cs.getPropertyValue(n).trim();
   C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
         line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
-        hatch: g('--hatch'), s1: g('--s1'), s2: g('--s2'), dark: g('--dark') === '1',
-        p: [0,1,2,3,4,5,6,7,8].map(i => g('--p' + i)) };
+        hatch: g('--hatch'), s1: g('--s1'), s2: g('--s2'), dark: g('--dark') === '1' };
+}
+/* Piece colours are keyed by piece name, so a piece looks the same on both shapes and in both themes.
+   Pieces only one shape has share a colour slot with a similar piece on the other (O/R, S/N, T/Y, l/V). */
+const PIECE_COLOR = {
+  L: '#3b7ddd', P: '#f08a24', U: '#8b5cf6', Z: '#e0b000',
+  O: '#d64545', R: '#d64545', S: '#27b3c2', N: '#27b3c2', T: '#e0609a', Y: '#e0609a',
+  l: '#a07a55', V: '#a07a55', X: '#4fae3f',
+};
+const pieceColor = (k, p) => PIECE_COLOR[S[k].pieces[p].name];
+// Dark or white text, whichever reads better on a given fill.
+function textOn(hexColor) {
+  const [r, g, b] = hex(hexColor).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.28 ? '#15171a' : '#ffffff';
 }
 // Heat scale: red = fewest, yellow = middle, green = most. Dark mode uses slightly deeper steps.
 const HEAT = ['#c62f2f', '#e4643a', '#f19a3e', '#f4c64e', '#d9d65a', '#a6c95a', '#6db256', '#2f9449'];
@@ -468,20 +488,34 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 /**
  * Draw a board. fills[i] = colour or null; groups[i] = piece id (cells of the same group are joined);
- * texts[i] = label drawn in the cell; dateCells get the date highlight.
+ * texts[i] = label drawn in the cell; dateCells are the open holes, left as background.
  */
 function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells = [], alpha = [], textColors = [], ring = null }) {
   const s = S[k];
   const g = Math.max(1, Math.round(cs * 0.07));
-  const W = 7 * cs, H = 7 * cs;
+  const lw = Math.max(1.5, cs * 0.07), pad = Math.ceil(lw) + 1;
+  const W = 7 * cs + 2 * pad, H = 7 * cs + 2 * pad;
   const ctx = setupCanvas(cv, W, H);
   ctx.clearRect(0, 0, W, H);
+  ctx.translate(pad, pad);
   const pos = s.cells.map(([r, c]) => [c * cs, r * cs]);
-  const cellAt = (r, c) => s.at[r * 7 + c];
-  // Empty board cells.
-  s.cells.forEach((rc, i) => {
+  const cellAt = (r, c) => (r < 0 || c < 0 || r > 6 || c > 6) ? undefined : s.at[r * 7 + c];
+  // Outline of the whole board, so its edge is clear even where holes sit on it.
+  ctx.strokeStyle = C.muted; ctx.lineWidth = lw; ctx.lineCap = 'square';
+  ctx.beginPath();
+  s.cells.forEach(([r, c], i) => {
     const [x, y] = pos[i];
-    ctx.fillStyle = dateCells.includes(i) ? C.date : C.cell;
+    if (cellAt(r - 1, c) === undefined) { ctx.moveTo(x, y); ctx.lineTo(x + cs, y); }
+    if (cellAt(r + 1, c) === undefined) { ctx.moveTo(x, y + cs); ctx.lineTo(x + cs, y + cs); }
+    if (cellAt(r, c - 1) === undefined) { ctx.moveTo(x, y); ctx.lineTo(x, y + cs); }
+    if (cellAt(r, c + 1) === undefined) { ctx.moveTo(x + cs, y); ctx.lineTo(x + cs, y + cs); }
+  });
+  ctx.stroke();
+  // Empty board cells; the open holes stay background.
+  s.cells.forEach((rc, i) => {
+    if (dateCells.includes(i)) return;
+    const [x, y] = pos[i];
+    ctx.fillStyle = C.cell;
     roundRect(ctx, x + g, y + g, cs - 2 * g, cs - 2 * g, Math.max(1, cs * 0.12));
   });
   // Pieces, joined across shared edges.
@@ -506,7 +540,7 @@ function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells =
     const [x, y] = pos[i];
     const isDate = dateCells.includes(i);
     ctx.font = `${isDate ? 600 : 400} ${fs}px ${getComputedStyle(document.body).getPropertyValue('--font-mono') || 'monospace'}`;
-    ctx.fillStyle = textColors[i] || (isDate ? C.dateInk : C.muted);
+    ctx.fillStyle = textColors[i] || (isDate ? C.ink : C.muted);
     ctx.fillText(texts[i], x + cs / 2, y + cs / 2 + 0.5);
   });
   if (ring != null) {
@@ -522,7 +556,7 @@ function drawSolution(cv, k, sol, cs, labels) {
   const fills = [], groups = [], texts = [], dateCells = [];
   for (let i = 0; i < sol.length; i++) {
     if (sol[i] === '.') { dateCells.push(i); texts[i] = S[k].labels[i]; }
-    else { fills[i] = C.p[+sol[i]]; groups[i] = sol[i]; }
+    else { fills[i] = pieceColor(k, +sol[i]); groups[i] = sol[i]; }
   }
   drawBoard(cv, k, { cs, fills, groups, texts: labels ? texts : [], dateCells });
 }
@@ -531,7 +565,7 @@ function pieceIcon(k, p, size = 12, orient = null) {
   const pts = orient || S[k].pieces[p].shape;
   const R = Math.max(...pts.map(q => q[0])) + 1, Cc = Math.max(...pts.map(q => q[1])) + 1;
   const u = size, gg = 1;
-  const rects = pts.map(([r, c]) => `<rect x="${c * u + gg / 2}" y="${r * u + gg / 2}" width="${u - gg}" height="${u - gg}" rx="1.5" fill="var(--p${p})"/>`).join('');
+  const rects = pts.map(([r, c]) => `<rect x="${c * u + gg / 2}" y="${r * u + gg / 2}" width="${u - gg}" height="${u - gg}" rx="1.5" fill="${pieceColor(k, p)}"/>`).join('');
   return `<svg width="${Cc * u}" height="${R * u}" viewBox="0 0 ${Cc * u} ${R * u}" aria-hidden="true">${rects}</svg>`;
 }
 
@@ -541,26 +575,17 @@ function renderSolutions() {
   const k = state.shape, s = S[k], { m, d } = state;
   const sols = s.solutions[key(m, d)];
   const n = sols.length, isReal = valid(m, d);
-  document.getElementById('d-eyebrow').textContent = `${s.name}${isReal ? '' : ' · date that doesn’t exist'}`;
   document.getElementById('d-title').textContent = `${MONTHS[m - 1]} ${d}`;
-  document.getElementById('d-count').textContent = fmt(n);
-  document.getElementById('d-count-lbl').textContent = n === 1 ? 'solution' : 'solutions';
-
-  const facts = [];
+  document.getElementById('d-count').innerHTML = `<b class="num">${fmt(n)}</b> ${n === 1 ? 'solution' : 'solutions'}`;
+  let rank;
   if (isReal) {
     const below = s.real.filter(x => x.n < n).length, same = s.real.filter(x => x.n === n).length - 1;
-    const rankHard = below + 1;
-    facts.push(`<li><b>${ord(rankHard)}</b> hardest of 366 dates${same ? ` (tied with ${same} other${same > 1 ? 's' : ''})` : ''}</li>`);
-    const ratio = n / s.mean;
-    facts.push(`<li><b>${ratio >= 1 ? ratio.toFixed(1) + '×' : Math.round(ratio * 100) + '%'}</b> ${ratio >= 1 ? 'the' : 'of the'} average date (${s.mean.toFixed(1)})</li>`);
+    rank = `<b>${ord(below + 1)}</b> hardest of 366 dates${same ? ` (tied with ${same} other${same > 1 ? 's' : ''})` : ''}`;
   } else {
-    facts.push(`<li><span class="pill">Not a real date</span> — excluded from the statistics</li>`);
+    rank = `<span class="pill">Not a real date</span> excluded from the statistics`;
   }
-  const ok = SHAPES.find(x => x !== k);
-  facts.push(`<li>${SHAPE_LABEL[ok]} has <b>${fmt(S[ok].counts[key(m, d)])}</b> solutions for this date</li>`);
+  document.getElementById('d-rank').innerHTML = rank;
   const cons = consensus(k, sols);
-  if (n) facts.push(`<li><b>${cons.locked}</b> of 41 cells are covered by the same piece in every solution</li>`);
-  document.getElementById('d-facts').innerHTML = facts.join('');
 
   // Boards.
   const texts = allLabels(k);
@@ -603,7 +628,7 @@ function renderFinderAndGrid() {
   for (let i = 0; i < s.cells.length; i++) {
     if (dc.includes(i)) { texts[i] = s.labels[i]; continue; }
     const first = shown.length ? shown[0][1][i] : null;
-    if (first !== null && shown.every(([, x]) => x[i] === first)) { fills[i] = C.p[+first]; groups[i] = first; }
+    if (first !== null && shown.every(([, x]) => x[i] === first)) { fills[i] = pieceColor(k, +first); groups[i] = first; }
     else if (next === null && shown.length) next = i;
   }
   if (next !== null) texts[next] = '?';
@@ -659,8 +684,7 @@ document.getElementById('finder-reset').onclick = () => { state.picks = []; rend
 function consensus(k, sols) {
   const s = S[k], NC = s.cells.length;
   const fills = [], groups = [], alpha = [], texts = [], textColors = [];
-  let locked = 0;
-  if (!sols.length) return { fills, groups, alpha, texts, textColors, locked };
+  if (!sols.length) return { fills, groups, alpha, texts, textColors };
   for (let i = 0; i < NC; i++) {
     const t = {};
     for (const x of sols) t[x[i]] = (t[x[i]] || 0) + 1;
@@ -668,13 +692,13 @@ function consensus(k, sols) {
     let best = null, bn = 0;
     for (const p in t) if (t[p] > bn) { bn = t[p]; best = p; }
     const f = bn / sols.length;
-    if (f === 1) locked++;
-    fills[i] = C.p[+best]; groups[i] = f === 1 ? best : 'c' + i;
+    fills[i] = pieceColor(k, +best); groups[i] = f === 1 ? best : 'c' + i;
     alpha[i] = 0.18 + 0.82 * f;
     texts[i] = f === 1 ? '' : Math.round(f * 100) + '';
-    textColors[i] = C.ink;
+    // Pale cells show the background through, so use the page's ink; solid ones pick by the fill.
+    textColors[i] = f > 0.6 ? textOn(fills[i]) : C.ink;
   }
-  return { fills, groups, alpha, texts, textColors, locked };
+  return { fills, groups, alpha, texts, textColors };
 }
 
 /* enlarge dialog */
@@ -1130,7 +1154,7 @@ function pieces(k) {
     `<h4 style="grid-column:1/-1;margin:0;font-size:14px;color:var(--ink-2)">${entries.length} orientation${entries.length > 1 ? 's' : ''} used</h4>` +
     entries.map(([kk, n]) => {
       const pts = kk.split(';').map(t => t.split(',').map(Number));
-      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${(n / st.N * 100).toFixed(1)}%</div><div class="ob" style="width:${n / top * 100}%;background:var(--p${p})"></div></div></div>`;
+      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${(n / st.N * 100).toFixed(1)}%</div><div class="ob" style="width:${n / top * 100}%;background:${pieceColor(k, p)}"></div></div></div>`;
     }).join('');
 }
 
@@ -1143,6 +1167,13 @@ function impossible() {
 }
 
 /* ---------- controls ---------- */
+// Each shape button carries a small outline of its board.
+function shapeIcon(k) {
+  const u = 4;
+  return `<svg width="${7 * u}" height="${7 * u}" viewBox="0 0 ${7 * u} ${7 * u}" aria-hidden="true">` +
+    S[k].cells.map(([r, c]) => `<rect x="${c * u + 0.5}" y="${r * u + 0.5}" width="${u - 1}" height="${u - 1}" fill="currentColor"/>`).join('') + '</svg>';
+}
+document.querySelectorAll('#shape-seg button').forEach(b => { b.innerHTML = shapeIcon(b.dataset.shape) + SHAPE_LABEL[b.dataset.shape]; });
 const monthSel = document.getElementById('month'), daySel = document.getElementById('day');
 monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
 daySel.innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
@@ -1212,8 +1243,11 @@ function rethemed() { readColors(); syncThemeButton(); render(); }
 /* Dark green by default, like lukasscarfe.com; the toggle switches to its light scheme and is remembered. */
 const themeBtn = document.getElementById('theme-toggle');
 const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+// The same icons as the lukasscarfe.com appearance switcher: a moon in light mode, a sun in dark mode.
+const MOON = '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>';
+const SUN = '<svg viewBox="2 2 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3V4m0 16v1M4 12H3M6.31412 6.31412 5.5 5.5m12.1859.81412L18.5 5.5M6.31412 17.69 5.5 18.5001M17.6859 17.69 18.5 18.5001M21 12H20m-4 0c0 2.2091-1.7909 4-4 4-2.20914.0-4-1.7909-4-4 0-2.20914 1.79086-4 4-4 2.2091.0 4 1.79086 4 4z"/></svg>';
 function syncThemeButton() {
-  themeBtn.innerHTML = isLight() ? '&#9790;' : '&#9788;';
+  themeBtn.innerHTML = isLight() ? MOON : SUN;
   themeBtn.setAttribute('aria-label', isLight() ? 'Switch to dark mode' : 'Switch to light mode');
 }
 themeBtn.onclick = () => {
