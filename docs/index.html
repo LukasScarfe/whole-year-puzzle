@@ -3,9 +3,7 @@
 <meta charset="utf-8">
 <title>The Whole Year Puzzle Solutions</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <style>
 :root {
   /* Colours from lukasscarfe.com (Blowfish theme). Dark green is the default, like the site. */
@@ -28,9 +26,10 @@
   --dark: 1;
   --ctl: 36px;
   --gap: 12px;
-  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* The site's font stacks (Blowfish/Tailwind defaults): system UI fonts, nothing downloaded. */
+  --font-display: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-body: var(--font-display);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 :root[data-theme="light"] {
   /* The site's light appearance: dusty pink ground, red-tinted neutrals, teal primary. */
@@ -82,7 +81,7 @@ button, select { font: inherit; color: inherit; }
 .brand .me .logo-light { display: none; }
 :root[data-theme="light"] .brand .me .logo-light { display: block; }
 :root[data-theme="light"] .brand .me .logo-dark { display: none; }
-.brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.brand h1 { font-size: 22px; font-weight: 800; }
 .nav { grid-area: nav; display: flex; gap: var(--gap); }
 .tabs, .seg { display: inline-flex; height: var(--ctl); background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
 .tabs button, .seg button {
@@ -136,7 +135,7 @@ dialog .icon-btn { width: 32px; }
   display: grid; grid-template-columns: minmax(0, 1.2fr) auto auto; gap: 28px; align-items: start;
   padding-block: 28px 20px;
 }
-.day-title h2 { font-size: clamp(34px, 6vw, 56px); line-height: 1.02; font-weight: 700; letter-spacing: -0.02em; margin-top: 4px; }
+.day-title h2 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; font-weight: 800; margin-top: 4px; }
 .day-stat { margin: 12px 0 0; font-size: 20px; line-height: 1.35; color: var(--ink-2); }
 .day-stat + .day-stat { margin-top: 4px; }
 .day-stat b { color: var(--ink); font-weight: 600; }
@@ -184,7 +183,7 @@ dialog .dnav { display: flex; gap: 6px; }
 
 /* ---------- stats view ---------- */
 .stats-intro { padding-block: 28px 8px; max-width: 70ch; }
-.stats-intro h2 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.02em; line-height: 1.05; }
+.stats-intro h2 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; font-weight: 800; }
 .stats-intro p { color: var(--ink-2); margin: 10px 0 0; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 20px 0 8px; }
 .tile { background: var(--surface); padding: 14px 16px; }
