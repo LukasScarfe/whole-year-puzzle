@@ -126,7 +126,9 @@ dialog .icon-btn { width: 32px; }
   .brand h1 { font-size: 19px; flex-basis: 100%; }
   .masthead { align-items: start; }
   .nav { flex-direction: column; }
-  .date-ctl select#month { flex: 1; min-width: 0; }
+  /* Five controls share the row exactly: the dropdowns take what the buttons leave. */
+  .date-ctl { display: grid; grid-template-columns: var(--ctl) minmax(0, 3fr) minmax(0, 2fr) var(--ctl) auto; }
+  .date-ctl select { width: 100%; min-width: 0; }
 }
 
 /* ---------- solutions view ---------- */
@@ -238,7 +240,7 @@ footer.src a { color: var(--ink-2); }
   .day-title { grid-column: 1 / -1; }
 }
 @media (max-width: 600px) {
-  .day-head { grid-template-columns: 1fr; gap: 18px; }
+  .day-head { grid-template-columns: minmax(0, 1fr); gap: 18px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .sol canvas { transition: transform .12s ease; }
@@ -1207,6 +1209,11 @@ function shapeIcon(k) {
 document.querySelectorAll('#shape-seg button').forEach(b => { b.innerHTML = shapeIcon(b.dataset.shape) + SHAPE_LABEL[b.dataset.shape]; });
 const monthSel = document.getElementById('month'), daySel = document.getElementById('day');
 monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+// Phones get short month names so the date row always fits on one line.
+const narrow = matchMedia('(max-width: 640px)');
+const nameMonths = () => [...monthSel.options].forEach((o, i) => { o.textContent = narrow.matches ? MON[i] : MONTHS[i]; });
+nameMonths();
+narrow.addEventListener('change', nameMonths);
 daySel.innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
 function syncControls() {
   monthSel.value = state.m; daySel.value = state.d;
