@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Whole Year Atlas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #f2f3ef;
+  --surface: #fcfcfb;
+  --ink: #15171a;
+  --ink-2: #50535a;
+  --muted: #7d8187;
+  --line: #e1e2dc;
+  --axis: #c3c4bd;
+  --cell: #e6e7e1;
+  --date: #f5dc7a;
+  --date-ink: #3b3005;
+  --hatch: #cfd0c9;
+  --ring: rgba(21, 23, 26, 0.10);
+  --focus: #256abf;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --p0: #2a78d6; --p1: #eb6834; --p2: #1baf7a; --p3: #eda100; --p4: #e87ba4;
+  --p5: #008300; --p6: #4a3aa7; --p7: #e34948; --p8: #8a6a4f;
+  --dark: 0;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #101113; --surface: #191a1c; --ink: #f2f2ef; --ink-2: #c3c2b9; --muted: #8b8e94;
+    --line: #2b2c2f; --axis: #3b3c40; --cell: #26272a; --date: #6b5a17; --date-ink: #fff3c4;
+    --hatch: #34353a; --ring: rgba(255, 255, 255, 0.10); --focus: #6da7ec;
+    --s1: #3987e5; --s2: #d95926;
+    --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
+    --p5: #1f8f1f; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
+    --dark: 1;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101113; --surface: #191a1c; --ink: #f2f2ef; --ink-2: #c3c2b9; --muted: #8b8e94;
+  --line: #2b2c2f; --axis: #3b3c40; --cell: #26272a; --date: #6b5a17; --date-ink: #fff3c4;
+  --hatch: #34353a; --ring: rgba(255, 255, 255, 0.10); --focus: #6da7ec;
+  --s1: #3987e5; --s2: #d95926;
+  --p0: #3987e5; --p1: #d95926; --p2: #199e70; --p3: #c98500; --p4: #d55181;
+  --p5: #1f8f1f; --p6: #9085e9; --p7: #e66767; --p8: #a08064;
+  --dark: 1;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding: 0 16px 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+button, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- top bar ---------- */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  margin: 0 -16px; padding: 12px 16px;
+}
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.brand span { color: var(--muted); font-size: 13px; }
+.tabs, .seg { display: inline-flex; background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
+.tabs button, .seg button {
+  border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 14px; font-weight: 500; color: var(--ink-2); white-space: nowrap;
+}
+.tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] {
+  background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
+}
+.date-ctl { display: flex; align-items: center; gap: 6px; }
+.date-ctl select {
+  background: var(--surface); border: 1px solid var(--axis); border-radius: 6px; padding: 5px 8px; font-size: 14px;
+}
+.icon-btn {
+  border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; width: 32px; height: 32px;
+  cursor: pointer; display: inline-grid; place-items: center; font-size: 15px; line-height: 1;
+}
+.text-btn { border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 14px; }
+
+/* ---------- solutions view ---------- */
+.day-head {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) auto auto; gap: 28px; align-items: start;
+  padding-block: 28px 20px;
+}
+.day-title .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--muted); font-weight: 600; }
+.day-title h2 { font-size: clamp(34px, 6vw, 56px); line-height: 1.02; font-weight: 700; letter-spacing: -0.02em; margin-top: 4px; }
+.count-line { margin-top: 14px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.count-line .big { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1; }
+.count-line .lbl { color: var(--ink-2); }
+.facts { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; color: var(--ink-2); font-size: 14px; }
+.facts b { color: var(--ink); font-weight: 600; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--date); color: var(--date-ink); vertical-align: middle; }
+.boardcard { display: grid; gap: 6px; justify-items: start; }
+.boardcard .cap { font-size: 12px; color: var(--muted); max-width: 250px; }
+.boardcard canvas { display: block; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 12px 0 16px; border-top: 1px solid var(--line); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.legend svg { display: block; }
+
+.finder {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px 24px; align-items: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 24px;
+}
+.finder canvas { display: block; }
+.finder h3 { font-size: 20px; }
+.finder-body { display: grid; gap: 10px; justify-items: start; }
+.finder-body p { margin: 0; color: var(--ink-2); max-width: 60ch; }
+.finder-body p b { color: var(--ink); }
+.finder-actions { display: flex; gap: 8px; }
+.finder .chips button .ct { color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+@media (max-width: 560px) { .finder { grid-template-columns: 1fr; } }
+.grid-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.grid-head h3 { font-size: 20px; }
+.grid-head .hint { color: var(--muted); font-size: 13px; }
+.sol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 14px 10px; }
+.sol {
+  border: 0; background: transparent; padding: 0; cursor: zoom-in; display: grid; justify-items: center; gap: 2px;
+  border-radius: 6px;
+}
+.sol canvas { display: block; }
+.sol span { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.sol:hover span { color: var(--ink); }
+
+dialog {
+  border: 0; border-radius: 12px; padding: 20px; background: var(--surface); color: var(--ink);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); max-width: calc(100vw - 32px);
+}
+dialog::backdrop { background: rgba(10, 11, 12, .55); }
+dialog .dhead { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
+dialog canvas { display: block; max-width: 100%; height: auto; }
+dialog .dnav { display: flex; gap: 6px; }
+
+/* ---------- stats view ---------- */
+.stats-intro { padding-block: 28px 8px; max-width: 70ch; }
+.stats-intro h2 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -0.02em; line-height: 1.05; }
+.stats-intro p { color: var(--ink-2); margin: 10px 0 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 20px 0 8px; }
+.tile { background: var(--surface); padding: 14px 16px; }
+.tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+.tile .v { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
+.tile .s { font-size: 13px; color: var(--ink-2); }
+.tile button.link { border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--axis); text-underline-offset: 3px; }
+
+section.chart { padding-block: 28px 8px; border-top: 1px solid var(--line); margin-top: 24px; }
+section.chart > header { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+section.chart h3 { font-size: 22px; font-weight: 700; }
+section.chart header p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; max-width: 68ch; }
+.scroll-x { overflow-x: auto; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.panel h4 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+svg text { font-family: var(--font-body); }
+.keys { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); align-items: center; flex-wrap: wrap; }
+.keys i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.ramp { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.ramp .bar { width: 120px; height: 10px; border-radius: 3px; }
+
+.insights { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+.insight { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.insight .v { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1.1; }
+.insight h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.insight p { margin: 0; font-size: 14px; color: var(--ink-2); }
+table.rank { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.rank th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table.rank td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table.rank tr[data-go] { cursor: pointer; }
+table.rank tr[data-go]:hover td { background: var(--cell); }
+table.rank td.n { text-align: right; width: 1%; white-space: nowrap; }
+table.rank td.barc { width: 45%; }
+table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 1px solid var(--axis); background: var(--surface); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.chips button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.orients { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; align-content: start; }
+.orient { display: grid; grid-template-columns: 48px 1fr; gap: 8px; align-items: center; font-size: 13px; }
+.orient .ob { height: 8px; border-radius: 0 4px 4px 0; }
+
+#tip {
+  position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg);
+  padding: 6px 9px; border-radius: 6px; font-size: 13px; line-height: 1.35; max-width: 260px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+footer.src { margin-top: 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+footer.src a { color: var(--ink-2); }
+
+@media (max-width: 760px) {
+  .day-head { grid-template-columns: 1fr; gap: 18px; }
+  .date-ctl { width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sol canvas { transition: transform .12s ease; }
+  .sol:hover canvas { transform: scale(1.04); }
+}
+</style>
+
+<div class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Whole Year Atlas</h1><span>every solution, every date</span></div>
+    <div class="tabs" role="group" aria-label="View">
+      <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
+      <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
+    </div>
+    <div class="seg" role="group" aria-label="Puzzle shape" id="shape-seg">
+      <button id="shape-shape1" data-shape="shape1" aria-pressed="false">Shape 1</button>
+      <button id="shape-shape2" data-shape="shape2" aria-pressed="true">Shape 2</button>
+    </div>
+    <div class="date-ctl">
+      <button class="icon-btn" id="prev-day" aria-label="Previous date">&#8249;</button>
+      <select id="month" aria-label="Month"></select>
+      <select id="day" aria-label="Day"></select>
+      <button class="icon-btn" id="next-day" aria-label="Next date">&#8250;</button>
+      <button class="text-btn" id="today">Today</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="view-solutions">
+    <div class="day-head">
+      <div class="day-title">
+        <div class="eyebrow" id="d-eyebrow"></div>
+        <h2 id="d-title"></h2>
+        <div class="count-line"><span class="big num" id="d-count"></span><span class="lbl" id="d-count-lbl"></span></div>
+        <ul class="facts" id="d-facts"></ul>
+      </div>
+      <div class="boardcard">
+        <canvas id="board-empty"></canvas>
+        <div class="cap">The board for this date — the two gold cells stay uncovered.</div>
+      </div>
+      <div class="boardcard">
+        <canvas id="board-consensus"></canvas>
+        <div class="cap" id="consensus-cap">Consensus: each cell takes its most common piece; paler means the solutions disagree.</div>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="finder">
+      <canvas id="finder-board"></canvas>
+      <div class="finder-body">
+        <h3>Find your solution</h3>
+        <p id="finder-q"></p>
+        <div class="chips" id="finder-chips"></div>
+        <div class="finder-actions">
+          <button class="text-btn" id="finder-undo">Undo</button>
+          <button class="text-btn" id="finder-reset">Start over</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid-head">
+      <h3 id="grid-title"></h3>
+      <span class="hint">Ordered by the piece in each cell, reading left to right from the top-left (legend order). Select one to enlarge it.</span>
+    </div>
+    <div class="sol-grid" id="sol-grid"></div>
+  </div>
+
+  <div id="view-stats" hidden>
+    <div class="stats-intro">
+      <h2>How the calendar splits the solutions</h2>
+      <p id="stats-lede"></p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+
+    <section class="chart">
+      <header><div><h3>Things the search turned up</h3><p>Worked out from every solution of both shapes.</p></div></header>
+      <div class="insights" id="insights"></div>
+    </section>
+
+    <section class="chart">
+      <header>
+        <div><h3>The year at a glance</h3><p>Solutions for every month/day pair. Hatched cells are dates that don't exist — the puzzle can still be set to them. Select a cell to open that date.</p></div>
+        <div class="ramp" id="cal-ramp"></div>
+      </header>
+      <div class="scroll-x" id="cal"></div>
+    </section>
+
+    <section class="chart">
+      <header>
+        <div><h3>Where the date sits on the board</h3><p>Average solutions when a given cell is left uncovered, across all real dates that use it. Cells near the edges or corners are easier to leave open than cells in the middle.</p></div>
+      </header>
+      <div class="two" id="cell-effect"></div>
+    </section>
+
+    <section class="chart">
+      <header>
+        <div><h3>Months, most to least generous</h3><p>Average solutions per date in each month (real dates only), both shapes on one scale.</p></div>
+        <div class="keys" id="keys-month"></div>
+      </header>
+      <div class="scroll-x" id="months"></div>
+    </section>
+
+    <section class="chart">
+      <header>
+        <div><h3>Day of the month</h3><p>Average solutions for each day number, over the months that have that day.</p></div>
+        <div class="keys" id="keys-day"></div>
+      </header>
+      <div class="scroll-x" id="days"></div>
+    </section>
+
+    <section class="chart">
+      <header><div><h3>Hardest and easiest dates</h3><p id="rank-sub"></p></div></header>
+      <div class="two">
+        <div class="panel"><h4>Fewest solutions</h4><table class="rank" id="rank-low"></table></div>
+        <div class="panel"><h4>Most solutions</h4><table class="rank" id="rank-high"></table></div>
+      </div>
+    </section>
+
+    <section class="chart">
+      <header><div><h3>How solution counts are spread</h3><p id="hist-sub"></p></div></header>
+      <div class="scroll-x" id="hist"></div>
+    </section>
+
+    <section class="chart">
+      <header><div><h3>Is a hard date hard on both shapes?</h3><p id="scatter-sub"></p></div></header>
+      <div class="scroll-x" id="scatter"></div>
+    </section>
+
+    <section class="chart">
+      <header><div><h3>Where each piece likes to sit</h3><p>Share of all solutions (real dates) in which the piece covers each cell, and how often each rotation or flip of it is used.</p></div></header>
+      <div class="chips" id="piece-chips"></div>
+      <div class="two" style="margin-top:16px">
+        <div id="piece-heat"></div>
+        <div class="orients" id="piece-orients"></div>
+      </div>
+    </section>
+
+    <section class="chart">
+      <header>
+        <div><h3>Every pair of holes, not just dates</h3><p id="pairs-sub"></p></div>
+        <div class="ramp" id="pairs-ramp"></div>
+      </header>
+      <div class="scroll-x" id="pairs"></div>
+    </section>
+
+    <section class="chart">
+      <header><div><h3>Dates that don't exist</h3><p>Feb 30, Apr 31 and friends aren't on any calendar, but the board lets you set them. They're excluded from every other statistic here.</p></div></header>
+      <table class="rank" id="impossible"></table>
+    </section>
+  </div>
+
+  <footer class="src">
+    Exhaustive search over all 12 × 31 month/day pairs for Puzzle Shapes 1 and 2 of
+    <a href="https://quilici.us/TheWholeYearPuzzle/index.php" target="_blank" rel="noopener">The Whole Year Puzzle</a>.
+    Each solution is a distinct placement of every piece; the board is not symmetric, so no two are mirror images of each other.
+  </footer>
+</main>
+
+<dialog id="dlg">
+  <div class="dhead">
+    <strong id="dlg-title"></strong>
+    <div class="dnav">
+      <button class="icon-btn" id="dlg-prev" aria-label="Previous solution">&#8249;</button>
+      <button class="icon-btn" id="dlg-next" aria-label="Next solution">&#8250;</button>
+      <button class="icon-btn" id="dlg-close" aria-label="Close">&#10005;</button>
+    </div>
+  </div>
+  <canvas id="dlg-canvas"></canvas>
+</dialog>
+<div id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const D = window.PUZZLE_DATA;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MON = MONTHS.map(m => m.slice(0, 3));
+const DIM = [31,29,31,30,31,30,31,31,30,31,30,31];
+const SHAPES = ['shape1', 'shape2'];
+const SHAPE_LABEL = { shape1: 'Shape 1', shape2: 'Shape 2' };
+const valid = (m, d) => d <= DIM[m - 1];
+const key = (m, d) => `${m}-${d}`;
+const fmt = n => n.toLocaleString('en-US');
+const ord = n => n + (['th','st','nd','rd'][(n % 100 - 20) % 10] || ['th','st','nd','rd'][n % 100] || 'th');
+const dateName = (m, d) => `${MON[m - 1]} ${d}`;
+
+/* ---------- derived data ---------- */
+const S = {};
+for (const k of SHAPES) {
+  const s = D[k];
+  const at = {};
+  s.cells.forEach(([r, c], i) => at[r * 7 + c] = i);
+  const counts = {};
+  const real = [];
+  for (let m = 1; m <= 12; m++) for (let d = 1; d <= 31; d++) {
+    const n = s.solutions[key(m, d)].length;
+    counts[key(m, d)] = n;
+    if (valid(m, d)) real.push({ m, d, n });
+  }
+  const sorted = [...real].sort((a, b) => a.n - b.n || a.m - b.m || a.d - b.d);
+  const total = real.reduce((a, x) => a + x.n, 0);
+  S[k] = { ...s, at, counts, real, sorted, total, mean: total / real.length,
+           median: sorted[Math.floor(sorted.length / 2)].n, stats: null };
+}
+const monthCell = m => m - 1;
+const dayCell = d => 11 + d;
+
+/* ---------- theme-aware colours ---------- */
+let C = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
+        line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
+        hatch: g('--hatch'), s1: g('--s1'), s2: g('--s2'), dark: g('--dark') === '1',
+        p: [0,1,2,3,4,5,6,7,8].map(i => g('--p' + i)) };
+}
+// Heat scale: red = fewest, yellow = middle, green = most. Dark mode uses slightly deeper steps.
+const HEAT = ['#c62f2f', '#e4643a', '#f19a3e', '#f4c64e', '#d9d65a', '#a6c95a', '#6db256', '#2f9449'];
+const HEAT_DARK = ['#b52d2d', '#cc5a33', '#d48735', '#d6ad40', '#bcba4a', '#8fb04c', '#5e9c4a', '#2a8043'];
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function seqRGB(t) {
+  t = Math.max(0, Math.min(1, t));
+  const ramp = C.dark ? HEAT_DARK : HEAT;
+  const x = t * (ramp.length - 1), i = Math.min(ramp.length - 2, Math.floor(x)), f = x - i;
+  const a = hex(ramp[i]), b = hex(ramp[i + 1]);
+  return a.map((v, j) => Math.round(v + (b[j] - v) * f));
+}
+const seq = t => `rgb(${seqRGB(t).join(',')})`;
+// Pick dark or white text by the cell colour's luminance, since the heat scale is light in the middle.
+function seqText(t) {
+  const [r, g, b] = seqRGB(t).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.28 ? '#15171a' : '#ffffff';
+}
+
+/* ---------- state ---------- */
+const now = new Date();
+const state = { view: 'solutions', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [] };
+try {
+  const saved = JSON.parse(localStorage.getItem('wya-state') || '{}');
+  if (SHAPES.includes(saved.shape)) state.shape = saved.shape;
+} catch (e) {}
+if (location.hash === '#stats') state.view = 'stats';
+function save() { try { localStorage.setItem('wya-state', JSON.stringify({ shape: state.shape })); } catch (e) {} }
+
+/* ---------- board drawing ---------- */
+function setupCanvas(cv, w, h) {
+  const r = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * r); cv.height = Math.round(h * r);
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(r, 0, 0, r, 0, 0);
+  return ctx;
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h);
+  ctx.fill();
+}
+/**
+ * Draw a board. fills[i] = colour or null; groups[i] = piece id (cells of the same group are joined);
+ * texts[i] = label drawn in the cell; dateCells get the gold highlight.
+ */
+function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells = [], alpha = [], textColors = [], ring = null }) {
+  const s = S[k];
+  const g = Math.max(1, Math.round(cs * 0.07));
+  const W = 7 * cs, H = 7 * cs;
+  const ctx = setupCanvas(cv, W, H);
+  ctx.clearRect(0, 0, W, H);
+  const pos = s.cells.map(([r, c]) => [c * cs, r * cs]);
+  const cellAt = (r, c) => s.at[r * 7 + c];
+  // Empty board cells.
+  s.cells.forEach((rc, i) => {
+    const [x, y] = pos[i];
+    ctx.fillStyle = dateCells.includes(i) ? C.date : C.cell;
+    roundRect(ctx, x + g, y + g, cs - 2 * g, cs - 2 * g, Math.max(1, cs * 0.12));
+  });
+  // Pieces, joined across shared edges.
+  s.cells.forEach(([r, c], i) => {
+    if (!fills[i]) return;
+    const [x, y] = pos[i];
+    ctx.globalAlpha = alpha[i] ?? 1;
+    ctx.fillStyle = fills[i];
+    ctx.fillRect(x + g, y + g, cs - 2 * g, cs - 2 * g);
+    const same = j => j !== undefined && groups[j] !== undefined && groups[j] === groups[i];
+    const R = cellAt(r, c + 1), B = cellAt(r + 1, c), BR = cellAt(r + 1, c + 1);
+    if (same(R)) ctx.fillRect(x + cs - g, y + g, 2 * g, cs - 2 * g);
+    if (same(B)) ctx.fillRect(x + g, y + cs - g, cs - 2 * g, 2 * g);
+    if (same(R) && same(B) && same(BR)) ctx.fillRect(x + cs - g, y + cs - g, 2 * g, 2 * g);
+    ctx.globalAlpha = 1;
+  });
+  // Labels.
+  const fs = Math.max(7, Math.round(cs * 0.34));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  s.cells.forEach((rc, i) => {
+    if (!texts[i]) return;
+    const [x, y] = pos[i];
+    const isDate = dateCells.includes(i);
+    ctx.font = `${isDate ? 600 : 400} ${fs}px ${getComputedStyle(document.body).getPropertyValue('--font-mono') || 'monospace'}`;
+    ctx.fillStyle = textColors[i] || (isDate ? C.dateInk : C.muted);
+    ctx.fillText(texts[i], x + cs / 2, y + cs / 2 + 0.5);
+  });
+  if (ring != null) {
+    const [x, y] = pos[ring];
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x + g, y + g, cs - 2 * g, cs - 2 * g, Math.max(1, cs * 0.12)); else ctx.rect(x + g, y + g, cs - 2 * g, cs - 2 * g);
+    ctx.stroke();
+  }
+}
+const allLabels = k => S[k].labels.map(l => l);
+function drawSolution(cv, k, sol, cs, labels) {
+  const fills = [], groups = [], texts = [], dateCells = [];
+  for (let i = 0; i < sol.length; i++) {
+    if (sol[i] === '.') { dateCells.push(i); texts[i] = S[k].labels[i]; }
+    else { fills[i] = C.p[+sol[i]]; groups[i] = sol[i]; }
+  }
+  drawBoard(cv, k, { cs, fills, groups, texts: labels ? texts : [], dateCells });
+}
+
+function pieceIcon(k, p, size = 12, orient = null) {
+  const pts = orient || S[k].pieces[p].shape;
+  const R = Math.max(...pts.map(q => q[0])) + 1, Cc = Math.max(...pts.map(q => q[1])) + 1;
+  const u = size, gg = 1;
+  const rects = pts.map(([r, c]) => `<rect x="${c * u + gg / 2}" y="${r * u + gg / 2}" width="${u - gg}" height="${u - gg}" rx="1.5" fill="var(--p${p})"/>`).join('');
+  return `<svg width="${Cc * u}" height="${R * u}" viewBox="0 0 ${Cc * u} ${R * u}" aria-hidden="true">${rects}</svg>`;
+}
+
+/* ---------- solutions view ---------- */
+let renderToken = 0;
+function renderSolutions() {
+  const k = state.shape, s = S[k], { m, d } = state;
+  const sols = s.solutions[key(m, d)];
+  const n = sols.length, isReal = valid(m, d);
+  document.getElementById('d-eyebrow').textContent = `${s.name}${isReal ? '' : ' · date that doesn’t exist'}`;
+  document.getElementById('d-title').textContent = `${MONTHS[m - 1]} ${d}`;
+  document.getElementById('d-count').textContent = fmt(n);
+  document.getElementById('d-count-lbl').textContent = n === 1 ? 'solution' : 'solutions';
+
+  const facts = [];
+  if (isReal) {
+    const below = s.real.filter(x => x.n < n).length, same = s.real.filter(x => x.n === n).length - 1;
+    const rankHard = below + 1;
+    facts.push(`<li><b>${ord(rankHard)}</b> hardest of 366 dates${same ? ` (tied with ${same} other${same > 1 ? 's' : ''})` : ''}</li>`);
+    const ratio = n / s.mean;
+    facts.push(`<li><b>${ratio >= 1 ? ratio.toFixed(1) + '×' : Math.round(ratio * 100) + '%'}</b> ${ratio >= 1 ? 'the' : 'of the'} average date (${s.mean.toFixed(1)})</li>`);
+  } else {
+    facts.push(`<li><span class="pill">Not a real date</span> — excluded from the statistics</li>`);
+  }
+  const ok = SHAPES.find(x => x !== k);
+  facts.push(`<li>${SHAPE_LABEL[ok]} has <b>${fmt(S[ok].counts[key(m, d)])}</b> solutions for this date</li>`);
+  const cons = consensus(k, sols);
+  if (n) facts.push(`<li><b>${cons.locked}</b> of 41 cells are covered by the same piece in every solution</li>`);
+  document.getElementById('d-facts').innerHTML = facts.join('');
+
+  // Boards.
+  const texts = allLabels(k);
+  const dc = [monthCell(m), dayCell(d)];
+  drawBoard(document.getElementById('board-empty'), k, { cs: 34, texts, dateCells: dc });
+  const cv = document.getElementById('board-consensus');
+  if (n) {
+    drawBoard(cv, k, { cs: 34, fills: cons.fills, groups: cons.groups, alpha: cons.alpha, texts: cons.texts,
+                       dateCells: dc, textColors: cons.textColors });
+    document.getElementById('consensus-cap').textContent =
+      'Consensus: each cell shows its most common piece and how often (%). Paler cells are where solutions disagree.';
+  }
+
+  // Legend.
+  document.getElementById('legend').innerHTML = s.pieces.map((p, i) =>
+    `<span class="item">${pieceIcon(k, i, 9)}<span>${p.name} · ${p.shape.length} cells</span></span>`).join('');
+
+  renderFinderAndGrid();
+}
+
+/* Solutions sorted by piece at each cell in reading order; the finder narrows them cell by cell. */
+const sortedCache = {};
+function sortedSolutions(k, m, d) {
+  const id = `${k}:${m}-${d}`;
+  // Cells are stored in reading order and pieces as '0'..'8' (legend order), so a plain string sort does it.
+  return sortedCache[id] || (sortedCache[id] = [...S[k].solutions[key(m, d)]].sort());
+}
+let shown = [];       // [[number, solution], ...] currently in the grid
+let findFor = '';     // which shape/date state.picks belongs to
+function renderFinderAndGrid() {
+  const k = state.shape, s = S[k], { m, d } = state;
+  const id = `${k}:${m}-${d}`;
+  if (findFor !== id) { state.picks = []; findFor = id; }
+  const all = sortedSolutions(k, m, d), n = all.length;
+  shown = all.map((x, i) => [i + 1, x]).filter(([, x]) => state.picks.every(([c, p]) => x[c] === p));
+
+  // Cells every remaining solution agrees on are known; the first cell (reading order) where they differ is next.
+  const fills = [], groups = [], texts = [], dc = [monthCell(m), dayCell(d)];
+  let next = null;
+  for (let i = 0; i < s.cells.length; i++) {
+    if (dc.includes(i)) { texts[i] = s.labels[i]; continue; }
+    const first = shown.length ? shown[0][1][i] : null;
+    if (first !== null && shown.every(([, x]) => x[i] === first)) { fills[i] = C.p[+first]; groups[i] = first; }
+    else if (next === null && shown.length) next = i;
+  }
+  if (next !== null) texts[next] = '?';
+  drawBoard(document.getElementById('finder-board'), k, { cs: 30, fills, groups, texts, dateCells: dc, ring: next });
+
+  const q = document.getElementById('finder-q'), chips = document.getElementById('finder-chips');
+  if (!n) { q.textContent = 'This date has no solutions.'; chips.innerHTML = ''; }
+  else if (next === null) {
+    q.innerHTML = `Found it: this is <b>solution #${shown[0][0]}</b> of ${fmt(n)}.`;
+    chips.innerHTML = '';
+  } else {
+    const tally = {};
+    for (const [, x] of shown) tally[x[next]] = (tally[x[next]] || 0) + 1;
+    q.innerHTML = `${state.picks.length ? `<b>${fmt(shown.length)}</b> solutions still match. ` : ''}Which piece covers the ringed cell (<b>${s.labels[next]}</b>)?`;
+    chips.innerHTML = Object.keys(tally).sort().map(p =>
+      `<button data-pick="${next}:${p}">${pieceIcon(k, +p, 7)}${s.pieces[+p].name} <span class="ct">${tally[p]}</span></button>`).join('');
+  }
+  document.getElementById('finder-undo').disabled = !state.picks.length;
+  document.getElementById('finder-reset').disabled = !state.picks.length;
+
+  document.getElementById('grid-title').textContent = state.picks.length
+    ? `${fmt(shown.length)} of ${fmt(n)} solution${n === 1 ? '' : 's'} match`
+    : `All ${fmt(n)} solution${n === 1 ? '' : 's'}`;
+  const grid = document.getElementById('sol-grid');
+  grid.innerHTML = '';
+  const token = ++renderToken;
+  let i = 0;
+  const step = () => {
+    if (token !== renderToken) return;
+    const frag = document.createDocumentFragment();
+    for (const end = Math.min(shown.length, i + 60); i < end; i++) {
+      const [num, sol] = shown[i];
+      const b = document.createElement('button');
+      b.className = 'sol'; b.dataset.i = i; b.setAttribute('aria-label', `Solution ${num}`);
+      const c = document.createElement('canvas');
+      drawSolution(c, k, sol, 17, false);
+      const sp = document.createElement('span'); sp.textContent = '#' + num;
+      b.append(c, sp); frag.append(b);
+    }
+    grid.append(frag);
+    if (i < shown.length) requestAnimationFrame(step);
+  };
+  step();
+}
+document.getElementById('finder-chips').addEventListener('click', e => {
+  const b = e.target.closest('[data-pick]'); if (!b) return;
+  const [c, p] = b.dataset.pick.split(':');
+  state.picks.push([+c, p]);
+  renderFinderAndGrid();
+});
+document.getElementById('finder-undo').onclick = () => { state.picks.pop(); renderFinderAndGrid(); };
+document.getElementById('finder-reset').onclick = () => { state.picks = []; renderFinderAndGrid(); };
+function consensus(k, sols) {
+  const s = S[k], NC = s.cells.length;
+  const fills = [], groups = [], alpha = [], texts = [], textColors = [];
+  let locked = 0;
+  if (!sols.length) return { fills, groups, alpha, texts, textColors, locked };
+  for (let i = 0; i < NC; i++) {
+    const t = {};
+    for (const x of sols) t[x[i]] = (t[x[i]] || 0) + 1;
+    if (t['.']) { texts[i] = s.labels[i]; continue; }
+    let best = null, bn = 0;
+    for (const p in t) if (t[p] > bn) { bn = t[p]; best = p; }
+    const f = bn / sols.length;
+    if (f === 1) locked++;
+    fills[i] = C.p[+best]; groups[i] = f === 1 ? best : 'c' + i;
+    alpha[i] = 0.18 + 0.82 * f;
+    texts[i] = f === 1 ? '' : Math.round(f * 100) + '';
+    textColors[i] = C.ink;
+  }
+  return { fills, groups, alpha, texts, textColors, locked };
+}
+
+/* enlarge dialog */
+const dlg = document.getElementById('dlg');
+let dlgI = 0;
+function showDialog(i) {
+  const k = state.shape, total = S[k].counts[key(state.m, state.d)];
+  dlgI = (i + shown.length) % shown.length;
+  const [num, sol] = shown[dlgI];
+  document.getElementById('dlg-title').textContent =
+    `${dateName(state.m, state.d)} · ${SHAPE_LABEL[k]} · solution #${num} of ${fmt(total)}` +
+    (shown.length < total ? ` (${dlgI + 1} of ${shown.length} matching)` : '');
+  const cs = Math.min(52, Math.floor((window.innerWidth - 72) / 7));
+  drawSolution(document.getElementById('dlg-canvas'), k, sol, cs, true);
+  if (!dlg.open) dlg.showModal();
+}
+document.getElementById('sol-grid').addEventListener('click', e => {
+  const b = e.target.closest('.sol'); if (b) showDialog(+b.dataset.i);
+});
+document.getElementById('dlg-prev').onclick = () => showDialog(dlgI - 1);
+document.getElementById('dlg-next').onclick = () => showDialog(dlgI + 1);
+document.getElementById('dlg-close').onclick = () => dlg.close();
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') showDialog(dlgI - 1);
+  if (e.key === 'ArrowRight') showDialog(dlgI + 1);
+});
+
+/* ---------- stats ---------- */
+function computeStats(k) {
+  const s = S[k];
+  if (s.stats) return s.stats;
+  const NC = s.cells.length, NP = s.pieces.length;
+  const cover = Array.from({ length: NP }, () => new Array(NC).fill(0));
+  const orient = Array.from({ length: NP }, () => new Map());
+  let N = 0;
+  for (const { m, d } of s.real) {
+    for (const sol of s.solutions[key(m, d)]) {
+      N++;
+      const cellsOf = Array.from({ length: NP }, () => []);
+      for (let i = 0; i < NC; i++) {
+        const ch = sol.charCodeAt(i) - 48;
+        if (ch >= 0) { cover[ch][i]++; cellsOf[ch].push(s.cells[i]); }
+      }
+      for (let p = 0; p < NP; p++) {
+        const pts = cellsOf[p];
+        const r0 = Math.min(...pts.map(q => q[0])), c0 = Math.min(...pts.map(q => q[1]));
+        const kk = pts.map(([r, c]) => (r - r0) + ',' + (c - c0)).sort().join(';');
+        orient[p].set(kk, (orient[p].get(kk) || 0) + 1);
+      }
+    }
+  }
+  // Cell effect: mean over real dates that leave this cell open.
+  const eff = new Array(NC).fill(0), effN = new Array(NC).fill(0);
+  for (const { m, d, n } of s.real) {
+    for (const i of [monthCell(m), dayCell(d)]) { eff[i] += n; effN[i]++; }
+  }
+  s.stats = { cover, orient, N, cellEffect: eff.map((v, i) => v / effN[i]) };
+  return s.stats;
+}
+
+const svgNS = 'http://www.w3.org/2000/svg';
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+function niceTicks(max, count = 5) {
+  const raw = max / count, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(x => x * mag).find(x => x >= raw);
+  const top = Math.ceil(max / step) * step;
+  const ticks = []; for (let v = 0; v <= top + 1e-9; v += step) ticks.push(v);
+  return { ticks, top };
+}
+// Maps a value to 0..1 with the median at 0.5 (yellow), so red = below a typical date, green = above.
+const scaleT = (v, lo, mid, hi) => v <= mid ? 0.5 * (v - lo) / (mid - lo || 1) : 0.5 + 0.5 * (v - mid) / (hi - mid || 1);
+const medianOf = xs => { const a = [...xs].sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; };
+function rampLegend(el, lo, hi, label, mid) {
+  el.innerHTML = `<span class="num">${fmt(Math.round(lo))}</span><span class="bar" style="background:linear-gradient(90deg,${Array.from({ length: 11 }, (_, i) => seq(i / 10)).join(',')})"></span><span class="num">${fmt(Math.round(hi))}</span>${label ? `<span>${label}${mid != null ? ` · yellow = median (${fmt(Math.round(mid))})` : ''}</span>` : ''}`;
+}
+
+function renderStats() {
+  const k = state.shape, s = S[k], st = computeStats(k);
+  const other = S[SHAPES.find(x => x !== k)];
+  const lo = s.sorted[0], hi = s.sorted[s.sorted.length - 1];
+  const both = S.shape1.real.map((x, i) => [x, S.shape2.real[i]]);
+  const s1wins = both.filter(([a, b]) => a.n > b.n).length;
+
+  document.getElementById('stats-lede').textContent =
+    `${s.name}: ${fmt(s.total)} distinct solutions across the 366 dates of a leap year, found by exhaustive search. ` +
+    `Every date has at least ${lo.n}. Switch shapes in the top bar; charts that compare both shapes show them side by side.`;
+
+  const go = (m, d) => `<button class="link" data-go="${m}-${d}">${dateName(m, d)}</button>`;
+  const lows = s.sorted.filter(x => x.n === lo.n), highs = s.sorted.filter(x => x.n === hi.n);
+  document.getElementById('tiles').innerHTML = [
+    ['Solutions in a year', fmt(s.total), `${other.name}: ${fmt(other.total)}`],
+    ['Average per date', s.mean.toFixed(1), `median ${s.median}`],
+    ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
+    ['Easiest date', hi.n, highs.map(x => go(x.m, x.d)).join(', ')],
+    ['Spread', (hi.n / lo.n).toFixed(0) + '×', 'easiest vs hardest'],
+    ['Shape 1 has more', s1wins, `of 366 dates than Shape 2`],
+  ].map(([k1, v, sub]) => `<div class="tile"><div class="k">${k1}</div><div class="v num">${v}</div><div class="s">${sub}</div></div>`).join('');
+
+  calendarHeatmap(k);
+  cellEffect();
+  groupedBars('months', 'keys-month', MON, (k2, i) => {
+    const xs = S[k2].real.filter(x => x.m === i + 1); return xs.reduce((a, x) => a + x.n, 0) / xs.length;
+  }, i => MONTHS[i]);
+  groupedBars('days', 'keys-day', Array.from({ length: 31 }, (_, i) => String(i + 1)), (k2, i) => {
+    const xs = S[k2].real.filter(x => x.d === i + 1); return xs.reduce((a, x) => a + x.n, 0) / xs.length;
+  }, i => `Day ${i + 1}`);
+  rankTables(k);
+  histogram(k);
+  scatter();
+  pieces(k);
+  pairMatrix(k);
+  impossible();
+  insights();
+}
+
+/* ---------- all hole pairs ---------- */
+function pairIndex(n) {
+  // Map pairs[] (itertools.combinations order) to a lookup: at[a][b] for a < b.
+  const at = []; let t = 0;
+  for (let a = 0; a < n; a++) { at[a] = []; for (let b = a + 1; b < n; b++) at[a][b] = t++; }
+  return at;
+}
+function pairInfo(k) {
+  const s = S[k];
+  if (s.pairInfo) return s.pairInfo;
+  const n = s.cells.length, at = pairIndex(n), P = s.pairs;
+  const get = (a, b) => a < b ? P[at[a][b]] : P[at[b][a]];
+  const kind = (a, b) => (a < 12) + (b < 12);  // 2 = both months, 1 = month + day, 0 = both days
+  let total = 0, dates = 0, best = null;
+  const zero = [];
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
+    const v = get(a, b); total += v;
+    if (kind(a, b) === 1) dates += v;
+    if (!v) zero.push([a, b]);
+    if (!best || v > best[2]) best = [a, b, v];
+  }
+  // Does leaving a and b open wall off a pocket smaller than the smallest piece?
+  const minPiece = Math.min(...s.pieces.map(p => p.shape.length));
+  const trapped = (a, b) => {
+    const seen = new Set([a, b]);
+    for (let i = 0; i < n; i++) {
+      if (seen.has(i)) continue;
+      const comp = [i]; seen.add(i);
+      for (let j = 0; j < comp.length; j++) {
+        const [r, c] = s.cells[comp[j]];
+        for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const q = s.at[(r + dr) * 7 + (c + dc)];
+          if (r + dr >= 0 && r + dr < 7 && c + dc >= 0 && c + dc < 7 && q !== undefined && !seen.has(q)) { seen.add(q); comp.push(q); }
+        }
+      }
+      if (comp.length < minPiece) return true;
+    }
+    return false;
+  };
+  return s.pairInfo = { get, total, dates, best, zero, zeroTrapped: zero.filter(([a, b]) => trapped(a, b)).length, n };
+}
+function pairMatrix(k) {
+  const s = S[k], pi = pairInfo(k), n = pi.n;
+  const cs = 12, L = 40, T = 40, W = L + n * cs + 8, H = T + n * cs + 8;
+  const vals = [];
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) vals.push(pi.get(a, b));
+  const pos = vals.filter(v => v > 0), lo = Math.min(...pos), hi = Math.max(...pos), mid = medianOf(pos);
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Solutions for every pair of uncovered cells, ${s.name}">`;
+  // Lower triangle: row = later cell, column = earlier cell.
+  for (let b = 1; b < n; b++) for (let a = 0; a < b; a++) {
+    const v = pi.get(a, b), isDate = (a < 12) !== (b < 12);
+    const fill = v ? seq(scaleT(v, lo, mid, hi)) : C.ink;
+    out += `<rect x="${L + a * cs + 0.5}" y="${T + b * cs + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5" fill="${fill}"
+      data-tip="<b>${s.labels[a]} + ${s.labels[b]}</b> open: ${fmt(v)} solutions${isDate ? '' : '<br>not a calendar date'}"
+      ${isDate && valid(a + 1, b - 11) ? `data-go="${a + 1}-${b - 11}" style="cursor:pointer"` : ''}/>`;
+  }
+  // The month + day block (real calendar dates) is outlined.
+  out += `<rect x="${L}" y="${T + 12 * cs}" width="${12 * cs}" height="${(n - 12) * cs}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>`;
+  const tickCells = [0, 5, 6, 11, 12, 16, 21, 26, 31, 36, 42];
+  for (const i of tickCells) {
+    out += `<text x="${L - 5}" y="${T + i * cs + cs - 2}" text-anchor="end" font-size="9" fill="${C.muted}">${s.labels[i]}</text>`;
+    out += `<text transform="translate(${L + i * cs + cs - 3},${T - 5}) rotate(-60)" font-size="9" fill="${C.muted}">${s.labels[i]}</text>`;
+  }
+  out += `<text x="${L + 12 * cs + 6}" y="${T + 12 * cs - 4}" font-size="12" fill="${C.ink}">↙ outlined: month + day (the date settings)</text>`;
+  document.getElementById('pairs').innerHTML = out + '</svg>';
+  rampLegend(document.getElementById('pairs-ramp'), lo, hi, 'solutions · black = none', mid);
+  document.getElementById('pairs-sub').textContent =
+    `The board can be tiled with any two cells left open, not just a month and a day. Each square is one pair; ` +
+    `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
+    `Across all ${fmt(n * (n - 1) / 2)} pairs there are ` +
+    `${fmt(pi.total)} tilings, and only ${Math.round(pi.dates / pi.total * 100)}% of them spell out a month and a day.`;
+}
+
+/* ---------- findings ---------- */
+function rotationClass(pts) {
+  const out = new Set(); let q = pts;
+  for (let t = 0; t < 4; t++) {
+    q = q.map(([r, c]) => [c, -r]);
+    const r0 = Math.min(...q.map(x => x[0])), c0 = Math.min(...q.map(x => x[1]));
+    out.add(q.map(([r, c]) => (r - r0) + ',' + (c - c0)).sort().join(';'));
+  }
+  return out;
+}
+function extraStats(k) {
+  const s = S[k];
+  if (s.extra) return s.extra;
+  const st = computeStats(k), NP = s.pieces.length;
+  // Face-up share for pieces whose mirror image is a different piece.
+  const chiral = [];
+  s.pieces.forEach((p, i) => {
+    const up = rotationClass(p.shape), down = rotationClass(p.shape.map(([r, c]) => [r, -c]));
+    if ([...up].some(x => down.has(x))) return;
+    let n = 0; for (const [kk, v] of st.orient[i]) if (up.has(kk)) n += v;
+    chiral.push({ name: p.name, i, up: n / st.N });
+  });
+  // Placements that are identical in every solution of a date, and placements never used.
+  const forced = [], used = Array.from({ length: NP }, () => new Set());
+  for (const { m, d } of s.real) {
+    const sols = s.solutions[key(m, d)];
+    const cellsOf = sol => { const o = Array.from({ length: NP }, () => []); for (let i = 0; i < sol.length; i++) if (sol[i] !== '.') o[+sol[i]].push(i); return o.map(x => x.join(',')); };
+    const first = cellsOf(sols[0]);
+    const same = first.map(() => true);
+    for (const sol of sols) {
+      const c = cellsOf(sol);
+      c.forEach((x, p) => { used[p].add(x); if (x !== first[p]) same[p] = false; });
+    }
+    same.forEach((v, p) => { if (v) forced.push({ m, d, piece: s.pieces[p].name, n: sols.length }); });
+  }
+  const possible = s.possiblePlacements.reduce((a, b) => a + b, 0), usedN = used.reduce((a, u) => a + u.size, 0);
+  // Checkerboard colour of the two holes (Jan is a light square).
+  const col = i => (s.cells[i][0] + s.cells[i][1]) % 2;
+  const byCol = { light: [], dark: [], mixed: [] };
+  for (const { m, d, n } of s.real) {
+    const a = col(monthCell(m)), b = col(dayCell(d));
+    byCol[a !== b ? 'mixed' : a ? 'dark' : 'light'].push(n);
+  }
+  const avg = xs => xs.reduce((p, q) => p + q, 0) / xs.length;
+  return s.extra = { chiral, forced, possible, usedN, colour: { light: avg(byCol.light), dark: avg(byCol.dark), mixed: avg(byCol.mixed) } };
+}
+function insights() {
+  const out = [];
+  const add = (v, h, p) => out.push(`<div class="insight"><div class="v num">${v}</div><h4>${h}</h4><p>${p}</p></div>`);
+  const E = { shape1: extraStats('shape1'), shape2: extraStats('shape2') };
+  const PI = { shape1: pairInfo('shape1'), shape2: pairInfo('shape2') };
+  const lab = (k, [a, b]) => `${S[k].labels[a]} + ${S[k].labels[b]}`;
+
+  // 1. Unsolvable pairs.
+  add(`${PI.shape1.zero.length} + ${PI.shape2.zero.length}`, 'Hole pairs with no solution at all',
+    `Every one of the 366 dates is solvable, but a few pairs of open cells are not. None of them is a month + day, so no date is lost. ` +
+    `Shape 1: ${PI.shape1.zero.map(z => lab('shape1', z)).join(', ')}. Shape 2: ${PI.shape2.zero.map(z => lab('shape2', z)).join(', ')}. ` +
+    `${PI.shape1.zeroTrapped + PI.shape2.zeroTrapped} of these ${PI.shape1.zero.length + PI.shape2.zero.length} wall off a pocket of cells too small for any piece.`);
+
+  // 2. Best pair beats best date.
+  for (const k of SHAPES) {
+    const b = PI[k].best, hi = S[k].sorted[S[k].sorted.length - 1];
+    add(fmt(b[2]), `${S[k].name}'s most flexible pair isn't a date`,
+      `Leaving <b>${lab(k, b)}</b> open allows ${fmt(b[2])} tilings, more than the best real date (${dateName(hi.m, hi.d)}, ${fmt(hi.n)}).`);
+  }
+
+  // 3. Hardest day number.
+  const dayAvg = k => { const e = computeStats(k).cellEffect; let best = 12; for (let i = 12; i < 43; i++) if (e[i] < e[best]) best = i; return [best - 11, e[best]]; };
+  const [d1, a1] = dayAvg('shape1'), [d2, a2] = dayAvg('shape2');
+  add(d1 === d2 ? `Day ${d1}` : `${d1} / ${d2}`, d1 === d2 ? `The ${ord(d1)} is the hardest day on both shapes` : 'The hardest day number',
+    `Averaged over all months, the ${ord(d1)} gives ${a1.toFixed(0)} solutions on Shape 1${d1 === d2 ? '' : ` and the ${ord(d2)}`} ${d1 === d2 ? 'and' : ''} ${a2.toFixed(0)} on Shape 2. ` +
+    (d1 === 6 && d2 === 6 ? `Its cell sits right next to the corner cell 7 under the board's notch, so leaving it open makes that corner awkward to fill.` : ''));
+
+  // 4. Chirality bias.
+  const allChiral = SHAPES.flatMap(k => E[k].chiral.map(c => ({ ...c, k })));
+  const skew = allChiral.sort((a, b) => Math.abs(b.up - 0.5) - Math.abs(a.up - 0.5))[0];
+  const flip = skew.up < 0.5;
+  add(`${Math.round((flip ? 1 - skew.up : skew.up) * 100)}%`, `${S[skew.k].name}'s ${skew.name} piece prefers to be ${flip ? 'flipped' : 'face-up'}`,
+    `Most one-sided pieces split close to 50/50 between face-up and flipped, but the ${skew.name} on ${S[skew.k].name} is placed ${flip ? 'flipped over' : 'face-up'} ` +
+    `(relative to the legend) in ${Math.round((flip ? 1 - skew.up : skew.up) * 100)}% of all solutions.`);
+
+  // 5. Forced placements.
+  const forced = SHAPES.flatMap(k => E[k].forced.map(f => ({ ...f, k })));
+  add(forced.length, forced.length === 1 ? 'Date with a piece locked in place' : 'Dates with a piece locked in place',
+    forced.length
+      ? `On ${forced.map(f => `${dateName(f.m, f.d)} (${S[f.k].name})`).join(', ')}, the ${forced.map(f => f.piece).join(', ')} piece sits in exactly the same spot in all ${forced.map(f => f.n).join(', ')} solutions. Find that spot and you're halfway there.`
+      : 'No date forces any piece into a single spot; there is always a choice.');
+
+  // 6. Never-used placements.
+  for (const k of SHAPES) {
+    const e = E[k];
+    add(`${fmt(e.possible - e.usedN)}`, `${S[k].name}: placements no date ever uses`,
+      `The ${S[k].pieces.length} pieces can sit on the board in ${fmt(e.possible)} ways, yet ${fmt(e.possible - e.usedN)} of those never appear in any solution for any real date.`);
+  }
+
+  // 7. Checkerboard colour.
+  const c2 = E.shape2.colour, c1 = E.shape1.colour;
+  add(`${Math.round((c2.light / c2.dark - 1) * 100)}%`, 'Chessboard colour matters on Shape 2',
+    `Colour the board like a chessboard with Jan on a light square. On Shape 2, dates whose two holes are both light average ${c2.light.toFixed(0)} solutions; both dark, only ${c2.dark.toFixed(0)}. ` +
+    `Shape 1 barely cares (${c1.light.toFixed(0)} vs ${c1.dark.toFixed(0)}).`);
+
+  document.getElementById('insights').innerHTML = out.join('');
+}
+
+function calendarHeatmap(k) {
+  const s = S[k];
+  const cw = 22, ch = 22, L = 40, T = 20;
+  const W = L + 31 * cw + 4, H = T + 12 * ch + 4;
+  const lo = s.sorted[0].n, hi = s.sorted[s.sorted.length - 1].n;
+  const tt = n => scaleT(n, lo, s.median, hi);
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Solutions per date, ${s.name}">
+    <defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="${C.surface}"/><line x1="0" y1="0" x2="0" y2="5" stroke="${C.hatch}" stroke-width="2"/></pattern></defs>`;
+  for (let d = 1; d <= 31; d++) if (d === 1 || d % 5 === 0 || d === 31)
+    out += `<text x="${L + (d - 1) * cw + cw / 2}" y="${T - 7}" text-anchor="middle" font-size="11" fill="${C.muted}">${d}</text>`;
+  for (let m = 1; m <= 12; m++) {
+    out += `<text x="${L - 8}" y="${T + (m - 1) * ch + ch / 2 + 4}" text-anchor="end" font-size="12" fill="${C.ink2}">${MON[m - 1]}</text>`;
+    for (let d = 1; d <= 31; d++) {
+      const n = s.counts[key(m, d)], v = valid(m, d);
+      const x = L + (d - 1) * cw, y = T + (m - 1) * ch;
+      out += `<rect x="${x + 1}" y="${y + 1}" width="${cw - 2}" height="${ch - 2}" rx="3" fill="${v ? seq(tt(n)) : 'url(#hatch)'}" data-go="${m}-${d}" style="cursor:pointer"
+        data-tip="<b>${dateName(m, d)}</b>: ${fmt(n)} solutions${v ? '' : '<br>not a real date'}"/>`;
+    }
+  }
+  document.getElementById('cal').innerHTML = out + '</svg>';
+  rampLegend(document.getElementById('cal-ramp'), lo, hi, 'solutions', s.median);
+}
+
+function boardSVG(k, values, { cs = 46, fmtV = v => v.toFixed(0), tip, lo, hi, mid = null, showLabel = true } = {}) {
+  const s = S[k];
+  const W = 7 * cs, H = 7 * cs;
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto">`;
+  s.cells.forEach(([r, c], i) => {
+    const v = values[i];
+    const t = v == null ? null : mid != null ? scaleT(v, lo, mid, hi) : (v - lo) / (hi - lo || 1);
+    const fill = t == null ? C.cell : seq(t);
+    const tc = t == null ? C.muted : seqText(t);
+    out += `<g ${tip ? `data-tip="${esc(tip(i, v))}"` : ''}><rect x="${c * cs + 1.5}" y="${r * cs + 1.5}" width="${cs - 3}" height="${cs - 3}" rx="4" fill="${fill}"/>`;
+    if (showLabel) out += `<text x="${c * cs + cs / 2}" y="${r * cs + cs * 0.4}" text-anchor="middle" font-size="${cs * 0.22}" fill="${tc}" opacity="0.8">${s.labels[i]}</text>`;
+    if (v != null) out += `<text x="${c * cs + cs / 2}" y="${r * cs + cs * (showLabel ? 0.74 : 0.58)}" text-anchor="middle" font-size="${cs * 0.26}" font-weight="600" fill="${tc}" style="font-family:var(--font-mono)">${fmtV(v)}</text>`;
+    out += '</g>';
+  });
+  return out + '</svg>';
+}
+function cellEffect() {
+  document.getElementById('cell-effect').innerHTML = SHAPES.map(k => {
+    const e = computeStats(k).cellEffect;
+    const lo = Math.min(...e), hi = Math.max(...e);
+    return `<div class="panel"><h4>${S[k].name} · average ${fmt(Math.round(lo))}–${fmt(Math.round(hi))}</h4>` +
+      boardSVG(k, e, { lo, hi, mid: medianOf(e), tip: (i, v) => `<b>${S[k].labels[i]}</b> left open: ${v.toFixed(1)} solutions on average` }) + '</div>';
+  }).join('');
+}
+
+function groupedBars(id, keysId, cats, valueOf, catName) {
+  const vals = SHAPES.map(k => cats.map((_, i) => valueOf(k, i)));
+  const max = Math.max(...vals.flat());
+  const { ticks, top } = niceTicks(max);
+  const L = 44, B = 26, T = 10, Hp = 220, gw = cats.length > 12 ? 30 : 60;
+  const W = L + cats.length * gw + 8, H = T + Hp + B;
+  const bw = Math.min(14, (gw - 8) / 2 - 1);
+  const y = v => T + Hp - (v / top) * Hp;
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  for (const t of ticks) out += `<line x1="${L}" x2="${W - 4}" y1="${y(t)}" y2="${y(t)}" stroke="${t ? C.line : C.axis}"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${t}</text>`;
+  cats.forEach((c, i) => {
+    const cx = L + i * gw + gw / 2;
+    SHAPES.forEach((k, j) => {
+      const v = vals[j][i], x = cx + (j ? 1 : -1 - bw), h = Math.max(0, y(0) - y(v));
+      out += `<path d="M${x},${y(0)} v${-(h - 3)} q0,-3 3,-3 h${bw - 6} q3,0 3,3 v${h - 3} z" fill="${j ? C.s2 : C.s1}"/>`;
+    });
+    out += `<rect x="${L + i * gw}" y="${T}" width="${gw}" height="${Hp}" fill="transparent" data-tip="<b>${catName(i)}</b><br>Shape 1: ${vals[0][i].toFixed(1)}<br>Shape 2: ${vals[1][i].toFixed(1)}"/>`;
+    out += `<text x="${cx}" y="${H - 8}" text-anchor="middle" font-size="11" fill="${C.ink2}">${c}</text>`;
+  });
+  document.getElementById(id).innerHTML = out + '</svg>';
+  document.getElementById(keysId).innerHTML = SHAPES.map((k, j) => `<span><i style="background:var(--s${j + 1})"></i>${S[k].name}</span>`).join('');
+}
+
+function rankTables(k) {
+  const s = S[k], max = s.sorted[s.sorted.length - 1].n;
+  const row = (x, i) => `<tr data-go="${x.m}-${x.d}"><td class="num" style="color:var(--muted);width:1%">${i + 1}</td><td>${dateName(x.m, x.d)}</td>
+    <td class="barc"><div class="b" style="width:${(x.n / max) * 100}%"></div></td><td class="n num">${fmt(x.n)}</td></tr>`;
+  document.getElementById('rank-low').innerHTML = s.sorted.slice(0, 10).map(row).join('');
+  document.getElementById('rank-high').innerHTML = [...s.sorted].reverse().slice(0, 10).map(row).join('');
+  document.getElementById('rank-sub').textContent = `${s.name}, real dates only. Select a row to see its solutions.`;
+}
+
+function histogram(k) {
+  const s = S[k], vals = s.real.map(x => x.n), max = Math.max(...vals);
+  const bin = max > 400 ? 25 : 10;
+  const nb = Math.ceil((max + 1) / bin), bins = new Array(nb).fill(0);
+  for (const v of vals) bins[Math.floor(v / bin)]++;
+  const { ticks, top } = niceTicks(Math.max(...bins), 4);
+  const L = 40, B = 30, T = 16, Hp = 200, bw = Math.max(10, Math.min(28, 720 / nb));
+  const W = L + nb * bw + 10, H = T + Hp + B;
+  const y = v => T + Hp - (v / top) * Hp, x = v => L + (v / bin) * bw;
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  for (const t of ticks) out += `<line x1="${L}" x2="${W - 4}" y1="${y(t)}" y2="${y(t)}" stroke="${t ? C.line : C.axis}"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${t}</text>`;
+  bins.forEach((c, i) => {
+    const h = y(0) - y(c);
+    if (c) out += `<path d="M${L + i * bw + 1},${y(0)} v${-Math.max(0, h - 3)} q0,-3 3,-3 h${bw - 8} q3,0 3,3 v${Math.max(0, h - 3)} z" fill="${C.s1}"/>`;
+    out += `<rect x="${L + i * bw}" y="${T}" width="${bw}" height="${Hp}" fill="transparent" data-tip="<b>${i * bin}–${i * bin + bin - 1}</b> solutions: ${c} date${c === 1 ? '' : 's'}"/>`;
+  });
+  const step = bin * Math.ceil(nb / 10);
+  for (let v = 0; v <= nb * bin; v += step) out += `<text x="${x(v)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${v}</text>`;
+  const mx = x(s.median);
+  out += `<line x1="${mx}" x2="${mx}" y1="${T}" y2="${y(0)}" stroke="${C.ink}" stroke-width="1.5"/><text x="${mx + 5}" y="${T + 8}" font-size="12" fill="${C.ink}">median ${s.median}</text>`;
+  document.getElementById('hist').innerHTML = out + '</svg>';
+  document.getElementById('hist-sub').textContent = `Number of real dates by solution count, ${s.name}, in bins of ${bin}.`;
+}
+
+function scatter() {
+  const a = S.shape1.real, b = S.shape2.real;
+  const xs = a.map(p => p.n), ys = b.map(p => p.n);
+  const mean = v => v.reduce((p, q) => p + q, 0) / v.length;
+  const mx = mean(xs), my = mean(ys);
+  let sxy = 0, sxx = 0, syy = 0;
+  xs.forEach((x, i) => { sxy += (x - mx) * (ys[i] - my); sxx += (x - mx) ** 2; syy += (ys[i] - my) ** 2; });
+  const r = sxy / Math.sqrt(sxx * syy);
+  // One shared scale on both axes, so the y = x line is a true 45° diagonal.
+  const A = niceTicks(Math.max(...xs, ...ys), 8);
+  const L = 48, B = 40, T = 12, P = 520, W = L + P + 16, H = T + P + B;
+  const px = v => L + v / A.top * P, py = v => T + P - v / A.top * P;
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto">`;
+  for (const t of A.ticks) {
+    out += `<line x1="${L}" x2="${L + P}" y1="${py(t)}" y2="${py(t)}" stroke="${t ? C.line : C.axis}"/><text x="${L - 8}" y="${py(t) + 4}" text-anchor="end" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${t}</text>`;
+    out += `<line x1="${px(t)}" x2="${px(t)}" y1="${T}" y2="${T + P}" stroke="${t ? C.line : C.axis}"/><text x="${px(t)}" y="${T + P + 16}" text-anchor="middle" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${t}</text>`;
+  }
+  out += `<text x="${L + P / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${C.ink2}">Shape 1 solutions →</text>`;
+  out += `<text x="${L + 6}" y="${T + 14}" font-size="12" fill="${C.ink2}">↑ Shape 2 solutions</text>`;
+  // y = x reference line and the two regions it splits.
+  const more1 = xs.filter((x, i) => x > ys[i]).length, more2 = xs.filter((x, i) => x < ys[i]).length, tie = xs.length - more1 - more2;
+  out += `<line x1="${px(0)}" y1="${py(0)}" x2="${px(A.top)}" y2="${py(A.top)}" stroke="${C.ink2}" stroke-width="1.25" stroke-opacity="0.7"/>`;
+  out += `<text transform="translate(${px(A.top * 0.8)},${py(A.top * 0.8) - 8}) rotate(-45)" text-anchor="middle" font-size="12" fill="${C.ink2}">y = x · same count on both shapes</text>`;
+  out += `<text x="${px(A.top * 0.08)}" y="${py(A.top * 0.62)}" font-size="13" font-weight="600" fill="${C.ink}">More on Shape 2</text><text x="${px(A.top * 0.08)}" y="${py(A.top * 0.62) + 17}" font-size="12" fill="${C.ink2}">${more2} dates</text>`;
+  out += `<text x="${px(A.top * 0.97)}" y="${py(A.top * 0.36)}" text-anchor="end" font-size="13" font-weight="600" fill="${C.ink}">More on Shape 1</text><text x="${px(A.top * 0.97)}" y="${py(A.top * 0.36) + 17}" text-anchor="end" font-size="12" fill="${C.ink2}">${more1} dates${tie ? ` · ${tie} tied` : ''}</text>`;
+  a.forEach((p, i) => {
+    out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="4" fill="${C.s1}" fill-opacity="0.75" stroke="${C.surface}" stroke-width="1.5"/>`;
+    out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="8" fill="transparent" data-go="${p.m}-${p.d}" style="cursor:pointer" data-tip="<b>${dateName(p.m, p.d)}</b><br>Shape 1: ${xs[i]}<br>Shape 2: ${ys[i]}"/>`;
+  });
+  // Label the extremes of each shape.
+  const idx = [xs.indexOf(Math.max(...xs)), ys.indexOf(Math.max(...ys)), xs.indexOf(Math.min(...xs)), ys.indexOf(Math.min(...ys))];
+  [...new Set(idx)].forEach(i => {
+    const x0 = px(xs[i]), anchor = x0 > L + P - 80 ? 'end' : 'start';
+    out += `<text x="${x0 + (anchor === 'end' ? -8 : 8)}" y="${py(ys[i]) - 6}" text-anchor="${anchor}" font-size="12" fill="${C.ink}">${dateName(a[i].m, a[i].d)}</text>`;
+  });
+  document.getElementById('scatter').innerHTML = out + '</svg>';
+  const strength = Math.abs(r) > 0.7 ? 'strongly' : Math.abs(r) > 0.4 ? 'moderately' : 'only weakly';
+  document.getElementById('scatter-sub').textContent =
+    `One dot per real date. The two shapes are ${strength} correlated (Pearson r = ${r.toFixed(2)}): ` +
+    `a date that is hard on one piece set is ${Math.abs(r) > 0.4 ? 'often' : 'not reliably'} hard on the other.`;
+}
+
+function pieces(k) {
+  const s = S[k], st = computeStats(k);
+  if (state.piece >= s.pieces.length) state.piece = 0;
+  const p = state.piece;
+  document.getElementById('piece-chips').innerHTML = s.pieces.map((q, i) =>
+    `<button data-piece="${i}" aria-pressed="${i === p}">${pieceIcon(k, i, 7)}${q.name}</button>`).join('');
+  const vals = st.cover[p].map(v => v / st.N * 100);
+  const hi = Math.max(...vals);
+  document.getElementById('piece-heat').innerHTML = `<div class="panel"><h4>Piece ${s.pieces[p].name}: share of ${fmt(st.N)} solutions covering each cell</h4>` +
+    boardSVG(k, vals, { lo: 0, hi, fmtV: v => Math.round(v) + '%', tip: (i, v) => `<b>${s.labels[i]}</b>: piece ${s.pieces[p].name} covers it in ${v.toFixed(1)}% of solutions` }) + '</div>';
+  const entries = [...st.orient[p].entries()].sort((x, y) => y[1] - x[1]);
+  const top = entries[0][1];
+  document.getElementById('piece-orients').innerHTML =
+    `<h4 style="grid-column:1/-1;margin:0;font-size:14px;color:var(--ink-2)">${entries.length} orientation${entries.length > 1 ? 's' : ''} used</h4>` +
+    entries.map(([kk, n]) => {
+      const pts = kk.split(';').map(t => t.split(',').map(Number));
+      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${(n / st.N * 100).toFixed(1)}%</div><div class="ob" style="width:${n / top * 100}%;background:var(--p${p})"></div></div></div>`;
+    }).join('');
+}
+
+function impossible() {
+  const list = [];
+  for (let m = 1; m <= 12; m++) for (let d = DIM[m - 1] + 1; d <= 31; d++) list.push([m, d]);
+  document.getElementById('impossible').innerHTML =
+    `<tr><th>Date</th><th style="text-align:right">Shape 1</th><th style="text-align:right">Shape 2</th></tr>` +
+    list.map(([m, d]) => `<tr data-go="${m}-${d}"><td>${dateName(m, d)}</td><td class="n num">${fmt(S.shape1.counts[key(m, d)])}</td><td class="n num">${fmt(S.shape2.counts[key(m, d)])}</td></tr>`).join('');
+}
+
+/* ---------- controls ---------- */
+const monthSel = document.getElementById('month'), daySel = document.getElementById('day');
+monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+daySel.innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
+function syncControls() {
+  monthSel.value = state.m; daySel.value = state.d;
+  [...daySel.options].forEach(o => { o.textContent = o.value + (valid(state.m, +o.value) ? '' : ' ✕'); });
+  document.querySelectorAll('#shape-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.shape === state.shape));
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === state.view));
+  document.getElementById('view-solutions').hidden = state.view !== 'solutions';
+  document.getElementById('view-stats').hidden = state.view !== 'stats';
+}
+function render() {
+  syncControls();
+  if (state.view === 'solutions') renderSolutions(); else renderStats();
+}
+monthSel.onchange = () => { state.m = +monthSel.value; render(); };
+daySel.onchange = () => { state.d = +daySel.value; render(); };
+function shiftDay(delta) {
+  // Steps through real dates only.
+  let t = Date.UTC(2024, state.m - 1, Math.min(state.d, DIM[state.m - 1])) + delta * 864e5;
+  const dt = new Date(t);
+  if (dt.getUTCFullYear() !== 2024) t = Date.UTC(2024, delta > 0 ? 0 : 11, delta > 0 ? 1 : 31);
+  const n = new Date(t); state.m = n.getUTCMonth() + 1; state.d = n.getUTCDate();
+  if (state.view !== 'solutions') state.view = 'solutions';
+  render();
+}
+document.getElementById('prev-day').onclick = () => shiftDay(-1);
+document.getElementById('next-day').onclick = () => shiftDay(1);
+document.getElementById('today').onclick = () => { const t = new Date(); state.m = t.getMonth() + 1; state.d = t.getDate(); state.view = 'solutions'; render(); };
+document.getElementById('shape-seg').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.shape = b.dataset.shape; save(); render();
+};
+document.querySelector('.tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.view = b.dataset.view;
+  try { history.replaceState(null, '', state.view === 'stats' ? '#stats' : '#solutions'); } catch (err) {}
+  render(); window.scrollTo(0, 0);
+};
+document.addEventListener('click', e => {
+  const pc = e.target.closest('[data-piece]');
+  if (pc) { state.piece = +pc.dataset.piece; pieces(state.shape); return; }
+  const g = e.target.closest('[data-go]');
+  if (g && !e.target.closest('.sol')) {
+    const [m, d] = g.dataset.go.split('-').map(Number);
+    state.m = m; state.d = d; state.view = 'solutions'; render(); window.scrollTo(0, 0);
+  }
+});
+
+/* tooltip */
+const tip = document.getElementById('tip');
+document.addEventListener('pointermove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t) { tip.hidden = true; return; }
+  tip.innerHTML = t.getAttribute('data-tip');
+  tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y + h > innerHeight - 8) y = e.clientY - h - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+});
+document.addEventListener('pointerleave', () => { tip.hidden = true; });
+
+/* theme changes → redraw */
+function rethemed() { readColors(); render(); }
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rethemed); } catch (e) {}
+new MutationObserver(rethemed).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+readColors();
+render();
+if (document.fonts) document.fonts.ready.then(() => { if (state.view === 'solutions') renderSolutions(); });
+})();
+</script>
