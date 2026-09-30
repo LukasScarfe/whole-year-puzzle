@@ -1,4 +1,4 @@
-# Whole Year Atlas
+# The Whole Year Puzzle Solutions
 
 Every solution to [The Whole Year Puzzle](https://quilici.us/TheWholeYearPuzzle/index.php) calendar
 puzzle, Puzzle Shapes 1 and 2, for every date, plus a static site to browse them and explore
@@ -16,7 +16,7 @@ statistics.
 
 | | Shape 1 | Shape 2 |
 |---|---|---|
-| Pieces | 9: square, S, T, L (4 cells) + U, X, P, L, Z (5 cells) | 8: 2×3 rectangle + Z, U, Y, V, N, P, L |
+| Pieces | 9: L, l (4-cell L), O (square), P, S, T, U, X, Z | 8: L, N, P, R (2×3 rectangle), U, V, Y, Z |
 | Total solutions | 40,219 | 24,405 |
 | Fewest | May 21 (11) | Oct 6 (7) |
 | Most | Jan 28 (734) | Jan 25 (216) |
