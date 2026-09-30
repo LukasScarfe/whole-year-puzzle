@@ -26,6 +26,8 @@
   --s1: #47c9d2;        /* teal accent */
   --s2: #a58ebe;        /* lavender accent */
   --dark: 1;
+  --ctl: 36px;
+  --gap: 12px;
   --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -64,44 +66,68 @@ button, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-/* ---------- top bar ---------- */
-.top {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
+/* ---------- header ---------- */
+/* Every control is one height (--ctl) and every gap is one size (--gap). */
+.masthead-bar {
+  background: var(--bg); border-bottom: 1px solid var(--line);
   margin: 0 -16px; padding: 12px 16px;
 }
-.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
-.brand { display: flex; align-items: center; gap: 6px 14px; margin-right: auto; flex-wrap: wrap; }
+.masthead {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "brand nav theme";
+  align-items: center; gap: var(--gap);
+}
+.brand { grid-area: brand; display: flex; align-items: center; gap: 4px var(--gap); flex-wrap: wrap; min-width: 0; }
 .brand .me { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-size: 16px; font-weight: 500; }
 .brand .me img { width: 40px; height: 40px; display: block; }
 .brand .me .logo-light { display: none; }
 :root[data-theme="light"] .brand .me .logo-light { display: block; }
 :root[data-theme="light"] .brand .me .logo-dark { display: none; }
 .brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-.tabs, .seg { display: inline-flex; background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
+.nav { grid-area: nav; display: flex; gap: var(--gap); }
+.tabs, .seg { display: inline-flex; height: var(--ctl); background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
 .tabs button, .seg button {
-  border: 0; background: transparent; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  border: 0; background: transparent; padding: 0 12px; border-radius: 6px; cursor: pointer;
   font-size: 14px; font-weight: 500; color: var(--ink-2); white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
 }
-.seg button { display: inline-flex; align-items: center; gap: 7px; }
 .seg svg { display: block; flex: none; }
 .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] {
   background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
 }
-.date-ctl { display: flex; align-items: center; gap: 6px; }
-.date-ctl select {
-  background: var(--surface); border: 1px solid var(--axis); border-radius: 6px; padding: 5px 8px; font-size: 14px;
-}
-.icon-btn {
-  border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; width: 32px; height: 32px;
-  cursor: pointer; display: inline-grid; place-items: center; font-size: 15px; line-height: 1;
-}
 /* Borderless icon button, as in the lukasscarfe.com header. */
-.theme-btn { border: 0; background: none; padding: 4px; cursor: pointer; color: var(--ink-2); display: inline-grid; place-items: center; }
+.theme-btn { grid-area: theme; width: var(--ctl); height: var(--ctl); border: 0; background: none; padding: 0; cursor: pointer; color: var(--ink-2); display: inline-grid; place-items: center; }
 .theme-btn:hover { color: var(--focus); }
 .theme-btn svg { width: 20px; height: 20px; display: block; }
-.text-btn { border: 1px solid var(--axis); background: var(--surface); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 14px; }
+
+/* Date picker, sitting right above the date it sets. */
+.date-ctl { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; }
+.date-ctl select, .icon-btn, .text-btn {
+  height: var(--ctl); border: 1px solid var(--axis); background: var(--surface); border-radius: 8px; cursor: pointer; font-size: 14px;
+}
+.date-ctl select { padding: 0 8px; }
+.icon-btn, .text-btn { flex: none; }
+.icon-btn { width: var(--ctl); display: inline-grid; place-items: center; font-size: 16px; line-height: 1; padding: 0; }
+.text-btn { padding: 0 12px; }
+.finder-actions .text-btn, dialog .icon-btn { height: 32px; }
+dialog .icon-btn { width: 32px; }
+
+/* Wide screens: the one-row header stays pinned. */
+@media (min-width: 1101px) {
+  .masthead-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+}
+/* Narrower: the toggles take their own full-width row under the title, and nothing is pinned. */
+@media (max-width: 1100px) {
+  .masthead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand theme" "nav nav"; }
+  .tabs, .seg { flex: 1; }
+  .tabs button, .seg button { flex: 1; }
+}
+@media (max-width: 640px) {
+  .brand .me img { width: 32px; height: 32px; }
+  .brand h1 { font-size: 19px; flex-basis: 100%; }
+  .masthead { align-items: start; }
+  .nav { flex-direction: column; }
+  .date-ctl select#month { flex: 1; min-width: 0; }
+}
 
 /* ---------- solutions view ---------- */
 .day-head {
@@ -207,9 +233,12 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 footer.src { margin-top: 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
 footer.src a { color: var(--ink-2); }
 
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
+  .day-head { grid-template-columns: auto auto; justify-content: start; }
+  .day-title { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
   .day-head { grid-template-columns: 1fr; gap: 18px; }
-  .date-ctl { width: 100%; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .sol canvas { transition: transform .12s ease; }
@@ -217,8 +246,8 @@ footer.src a { color: var(--ink-2); }
 }
 </style>
 
-<div class="top">
-  <div class="wrap">
+<div class="masthead-bar">
+  <header class="masthead wrap">
     <div class="brand">
       <a class="me" href="https://lukasscarfe.com/">
         <img class="logo-dark" src="logo-dark.png" alt=""><img class="logo-light" src="logo-light.png" alt="">
@@ -226,29 +255,31 @@ footer.src a { color: var(--ink-2); }
       </a>
       <h1>The Whole Year Puzzle Solutions</h1>
     </div>
-    <div class="tabs" role="group" aria-label="View">
-      <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
-      <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
-    </div>
-    <div class="seg" role="group" aria-label="Puzzle shape" id="shape-seg">
-      <button id="shape-shape1" data-shape="shape1" aria-pressed="false">Shape 1</button>
-      <button id="shape-shape2" data-shape="shape2" aria-pressed="true">Shape 2</button>
-    </div>
-    <div class="date-ctl">
-      <button class="icon-btn" id="prev-day" aria-label="Previous date">&#8249;</button>
-      <select id="month" aria-label="Month"></select>
-      <select id="day" aria-label="Day"></select>
-      <button class="icon-btn" id="next-day" aria-label="Next date">&#8250;</button>
-      <button class="text-btn" id="today">Today</button>
-      <button class="theme-btn" id="theme-toggle" aria-label="Switch to light mode"></button>
-    </div>
-  </div>
+    <nav class="nav">
+      <div class="tabs" role="group" aria-label="View">
+        <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
+        <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
+      </div>
+      <div class="seg" role="group" aria-label="Puzzle shape" id="shape-seg">
+        <button id="shape-shape1" data-shape="shape1" aria-pressed="false">Shape 1</button>
+        <button id="shape-shape2" data-shape="shape2" aria-pressed="true">Shape 2</button>
+      </div>
+    </nav>
+    <button class="theme-btn" id="theme-toggle" aria-label="Switch to light mode"></button>
+  </header>
 </div>
 
 <main class="wrap">
   <div id="view-solutions">
     <div class="day-head">
       <div class="day-title">
+        <div class="date-ctl">
+          <button class="icon-btn" id="prev-day" aria-label="Previous date">&#8249;</button>
+          <select id="month" aria-label="Month"></select>
+          <select id="day" aria-label="Day"></select>
+          <button class="icon-btn" id="next-day" aria-label="Next date">&#8250;</button>
+          <button class="text-btn" id="today">Today</button>
+        </div>
         <h2 id="d-title"></h2>
         <p class="day-stat" id="d-count"></p>
         <p class="day-stat" id="d-rank"></p>
@@ -785,7 +816,7 @@ function renderStats() {
 
   document.getElementById('stats-lede').textContent =
     `${s.name}: ${fmt(s.total)} distinct solutions across the 366 dates of a leap year, found by exhaustive search. ` +
-    `Every date has at least ${lo.n}. Switch shapes in the top bar; charts that compare both shapes show them side by side.`;
+    `Every date has at least ${lo.n}. Switch shapes at the top; charts that compare both shapes show them side by side.`;
 
   const go = (m, d) => `<button class="link" data-go="${m}-${d}">${dateName(m, d)}</button>`;
   const lows = s.sorted.filter(x => x.n === lo.n), highs = s.sorted.filter(x => x.n === hi.n);
