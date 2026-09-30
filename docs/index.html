@@ -233,7 +233,8 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
   box-shadow: 0 4px 14px rgba(0,0,0,.2);
 }
 footer.src { margin-top: 40px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
-footer.src a { color: var(--ink-2); }
+footer.src p { margin: 0; }
+footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
 @media (max-width: 1100px) {
   .day-head { grid-template-columns: auto auto; justify-content: start; }
@@ -400,9 +401,8 @@ footer.src a { color: var(--ink-2); }
   </div>
 
   <footer class="src">
-    Exhaustive search over all 12 × 31 month/day pairs for Puzzle Shapes 1 and 2 of
-    <a href="https://quilici.us/TheWholeYearPuzzle/index.php" target="_blank" rel="noopener">The Whole Year Puzzle</a>.
-    Each solution is a distinct placement of every piece; the board is not symmetric, so no two are mirror images of each other.
+    <p>Thanks to my beautiful wife Michelle for the inspiration to determine this information.</p>
+    <p class="ai-note">This code and infographic information was created with the help of generative AI.</p>
   </footer>
 </main>
 
