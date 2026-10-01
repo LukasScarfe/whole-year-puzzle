@@ -91,11 +91,13 @@ button, select { font: inherit; color: inherit; }
   background: var(--bg); border-bottom: 1px solid var(--line);
   margin: 0 -16px; padding: 12px 16px;
 }
-/* Title centred on the page; the name and its logo share the title's size and line box so all
-   three sit at one height. The toggles take the row below (beside the title they'd overlap it). */
+/* The name and its logo share the title's size and line box so all three sit at one height.
+   Wide: one row, the title centred in the space between the name and the toggles (the toggles are
+   too wide for it to sit at the page centre). Narrower: the toggles drop to their own row and the
+   title is centred on the page. */
 .masthead {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  grid-template-areas: "me title theme" "nav nav nav";
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "me title nav theme";
   align-items: center; gap: var(--gap); --title: 22px;
 }
 .me, .masthead h1 { font-family: var(--font-display); font-size: var(--title); line-height: 1.2; }
@@ -105,7 +107,7 @@ button, select { font: inherit; color: inherit; }
 :root[data-theme="light"] .me .logo-light { display: block; }
 :root[data-theme="light"] .me .logo-dark { display: none; }
 .masthead h1 { grid-area: title; font-weight: 800; text-align: center; }
-.nav { grid-area: nav; justify-self: center; display: flex; gap: var(--gap); }
+.nav { grid-area: nav; display: flex; gap: var(--gap); }
 .tabs, .seg { display: inline-flex; height: var(--ctl); background: var(--cell); border-radius: 8px; padding: 3px; gap: 2px; }
 .tabs button, .seg button {
   border: 0; background: transparent; padding: 0 12px; border-radius: 6px; cursor: pointer;
@@ -133,13 +135,13 @@ button, select { font: inherit; color: inherit; }
 .finder-actions .text-btn, dialog .icon-btn { height: 32px; }
 dialog .icon-btn { width: 32px; }
 
-/* Wide screens: the header stays pinned. */
+/* Wide screens: the one-row header stays pinned. */
 @media (min-width: 1101px) {
   .masthead-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
 }
-/* Narrower: the toggles stretch to the full width, and nothing is pinned. */
+/* Narrower: the toggles take their own full-width row under the title, and nothing is pinned. */
 @media (max-width: 1100px) {
-  .nav { justify-self: stretch; }
+  .masthead { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "me title theme" "nav nav nav"; }
   .tabs, .seg { flex: 1; }
   .tabs button, .seg button { flex: 1; }
 }
@@ -583,7 +585,7 @@ function desaturate(hex, f) {
   const rgb = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][Math.floor(h) % 6];
   return '#' + rgb.map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
 }
-const PIECE_COLOR_LIGHT = Object.fromEntries(Object.entries(PIECE_COLOR).map(([n, c]) => [n, desaturate(c, 0.85)]));
+const PIECE_COLOR_LIGHT = Object.fromEntries(Object.entries(PIECE_COLOR).map(([n, c]) => [n, desaturate(c, 0.9)]));
 const pieceColor = (k, p) => (C.dark ? PIECE_COLOR : PIECE_COLOR_LIGHT)[S[k].pieces[p].name];
 // Dark or white text, whichever reads better on a given fill.
 function textOn(hexColor) {
