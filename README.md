@@ -9,9 +9,9 @@ statistics.
 - **Solutions:** pick a shape and a date to see every solution, ordered by the piece in each cell
   reading from the top-left. The *Find your solution* picker narrows the list one cell at a time.
 - **Statistics:** calendar heatmap, which months/days/cells are easiest and hardest, the full
-  distribution, a Shape 1 vs Shape 2 comparison, where each piece likes to sit, counts for every
-  pair of open cells (including ones that aren't dates), and the easiest and hardest month, date number and
-  open-cell combination for each shape.
+  distribution, where each piece likes to sit, counts for every pair of open cells (including ones
+  that aren't dates), and the easiest and hardest month, date number and open-cell combination, all
+  for the selected shape, plus a Shape 1 vs Shape 2 scatter on log axes.
 
 ## Results (366 real dates)
 

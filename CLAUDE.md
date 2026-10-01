@@ -44,7 +44,10 @@ done until it looks good on both.
   shape-vs-shape boxes.
 - "Interesting finds" is also selected-shape only: easiest/hardest month, date number and
   combination (any two open cells, ignoring unsolvable pairs). No subheading.
-- Charts that genuinely compare the shapes (months, days, scatter) stay, showing both side by side.
+- Every chart shows the selected shape only (board cells, months, days, etc.); captions don't name
+  the shape, since it's obvious from the selector. The two exceptions show both shapes: "Dates
+  that don't exist" (a small table) and "How do the Shapes compare?" (the scatter, last on the page,
+  on one shared log scale for both axes).
 
 ## Dependencies
 
