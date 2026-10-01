@@ -1,0 +1,82 @@
+# CLAUDE.md — The Whole Year Puzzle Solutions
+
+`README.md` covers what the project is, the results, and what each file does. This file covers how
+to change it.
+
+## Theming: match lukasscarfe.com
+
+The site has to look like part of lukasscarfe.com (Hugo + Blowfish theme). Any new UI must use the
+existing tokens, not new colours or fonts.
+
+- **Colours** come only from the `:root` / `:root[data-theme="light"]` tokens at the top of
+  `docs/index.html`, which are copied from the website's palette. Dark (green ground, purple
+  primary) is the default; light is the site's dusty-pink ground with teal primary. If you need a
+  colour that isn't a token, take it from the website's Blowfish palette and add it as a token in
+  **both** themes.
+- **Fonts** are the site's system stacks (`--font-display`, `--font-body`, `--font-mono`). No web
+  fonts. Headings are extrabold (800) like the website.
+- **Logos** match the theme: `logo-dark.png` (purple/green) in dark, `logo-light.png` (red/cyan)
+  in light. Favicon is `favicon-32x32.png`, the website's.
+- **Pieces** are alphabetical (L before l, as in `solve.py`) and coloured by name via `PIECE_COLOR`,
+  so a piece shared by both shapes looks the same everywhere, in both themes.
+- Check every UI change in **both** themes and at phone width.
+
+## Who it's for
+
+Both audiences: puzzle owners (Solutions view: find today's solution, see how hard a date is) and
+the curious/math crowd (Statistics view). Design **phone and desktop equally** — a change isn't
+done until it looks good on both.
+
+## Content conventions
+
+- **Naming:** always "Shape 1" / "Shape 2" on the site — never "Puzzle 1" or "Puzzle Shape 1". The
+  names come from `name` in `solve.py` (and so `data.js`).
+- **Dates:** short month + day, e.g. "Jan 25".
+- **Numbers:** whole numbers (floor/round) everywhere, except where a fraction is the point, like
+  a ratio ("31×"). Thousands separators via `fmt()`.
+- **Copy:** brief captions — one sentence under each chart saying what it shows and how to read it.
+  No intro paragraphs.
+
+## Statistics page
+
+- It is about **the selected shape**. The title is "Statistics of Shape 1" / "Statistics of
+  Shape 2". Summary boxes show only the selected shape — no "other shape" subtext, no
+  shape-vs-shape boxes.
+- Charts and findings that genuinely compare the shapes (months, days, scatter, "Things the search
+  turned up") stay, showing both side by side.
+
+## Dependencies
+
+No build step: the site is hand-written `docs/index.html` + generated `docs/data.js`, and the
+Python is stdlib only. Small libraries loaded from a CDN are fine when they clearly help.
+
+## After every change: restart the preview and look at it
+
+The LAN preview runs on raccoon at **http://192.168.1.241:8799/** (`#stats` for the statistics
+page). After any change, restart it and screenshot the result:
+
+```sh
+pkill -f "[h]ttp.server 8799"          # bracket so pkill doesn't match its own shell
+cd docs && python3 -m http.server 8799 # run in the background
+/home/lukas/scripts/screenshot.sh "http://192.168.1.241:8799/#stats" out.png 1300 900 1500
+```
+
+Port 8798 is FreshRSS — don't use it.
+
+## Finishing a change
+
+Without asking: edit → restart preview → screenshot → **commit to `main` locally**. Keep
+`README.md` (feature list, results table) in sync in the same commit.
+
+Only when asked: push, and update the artifact.
+
+## Publishing
+
+1. Push `main`; GitHub Pages serves `docs/` (`git@github.com:LukasScarfe/whole-year-puzzle.git`).
+2. The claude.ai artifact copy (https://claude.ai/artifact/EiKD4Np4vjD84K7PY8DtFw) is updated
+   separately: publish `docs/index.html` without its first two lines (`<!doctype html>`, `<html>`)
+   with `url` set to the artifact and `files` for `data.js`, `favicon-32x32.png`,
+   `logo-dark.png`, `logo-light.png`.
+
+If `solve.py` changes, regenerate with `python3 solve.py` and check with `python3 verify.py` before
+publishing.

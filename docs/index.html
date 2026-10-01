@@ -317,8 +317,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
   <div id="view-stats" hidden>
     <div class="stats-intro">
-      <h2>How the calendar splits the solutions</h2>
-      <p id="stats-lede"></p>
+      <h2 id="stats-title"></h2>
     </div>
     <div class="tiles" id="tiles"></div>
 
@@ -810,24 +809,19 @@ function rampLegend(el, lo, hi, label, mid) {
 
 function renderStats() {
   const k = state.shape, s = S[k], st = computeStats(k);
-  const other = S[SHAPES.find(x => x !== k)];
   const lo = s.sorted[0], hi = s.sorted[s.sorted.length - 1];
-  const both = S.shape1.real.map((x, i) => [x, S.shape2.real[i]]);
-  const s1wins = both.filter(([a, b]) => a.n > b.n).length;
 
-  document.getElementById('stats-lede').textContent =
-    `${s.name}: ${fmt(s.total)} distinct solutions across the 366 dates of a leap year, found by exhaustive search. ` +
-    `Every date has at least ${lo.n}. Switch shapes at the top; charts that compare both shapes show them side by side.`;
+  document.getElementById('stats-title').textContent = `Statistics of ${s.name}`;
 
   const go = (m, d) => `<button class="link" data-go="${m}-${d}">${dateName(m, d)}</button>`;
   const lows = s.sorted.filter(x => x.n === lo.n), highs = s.sorted.filter(x => x.n === hi.n);
   document.getElementById('tiles').innerHTML = [
-    ['Solutions in a year', fmt(s.total), `${other.name}: ${fmt(other.total)}`],
-    ['Average per date', s.mean.toFixed(1), `median ${s.median}`],
+    ['Solutions in a year', fmt(s.total), ''],
+    ['Mean solutions per date', fmt(Math.floor(s.mean)), ''],
+    ['Median solutions per date', fmt(s.median), ''],
     ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
     ['Easiest date', hi.n, highs.map(x => go(x.m, x.d)).join(', ')],
-    ['Spread', (hi.n / lo.n).toFixed(0) + '×', 'easiest vs hardest'],
-    ['Shape 1 has more', s1wins, `of 366 dates than Shape 2`],
+    ['Spread', (hi.n / lo.n).toFixed(0) + '×', `${fmt(hi.n)} easiest / ${fmt(lo.n)} hardest`],
   ].map(([k1, v, sub]) => `<div class="tile"><div class="k">${k1}</div><div class="v num">${v}</div><div class="s">${sub}</div></div>`).join('');
 
   calendarHeatmap(k);
