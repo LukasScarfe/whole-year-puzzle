@@ -50,8 +50,8 @@ def count_algorithm_x(shape, m, d):
     rows = {}
     for name, pts in shape['pieces'].items():
         for o in solve.orientations(pts):
-            for r0 in range(-3, 8):
-                for c0 in range(-3, 8):
+            for r0 in range(-4, 10):
+                for c0 in range(-4, 10):
                     ids = [idx.get((r0 + r, c0 + c)) for r, c in o]
                     if None not in ids and not open_cells & set(ids):
                         rows[(name, o, r0, c0)] = ['P' + name] + ids
