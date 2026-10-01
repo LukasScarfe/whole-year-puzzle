@@ -233,9 +233,14 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { border: 1px solid var(--axis); background: var(--surface); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .chips button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.orients { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; align-content: start; }
-.orient { display: grid; grid-template-columns: 48px 1fr; gap: 8px; align-items: center; font-size: 13px; }
-.orient .ob { height: 8px; border-radius: 0 4px 4px 0; }
+/* One row per orientation, every bar starting at the same x on one shared scale, so lengths compare directly.
+   Rows are kept short enough that the list is never taller than the board beside it. */
+.orients { display: grid; grid-template-columns: 28px 4ch minmax(0, 1fr); gap: 4px 10px; align-content: start; align-items: center; font-size: 13px; }
+.orients h4 { grid-column: 1 / -1; margin: 0 0 4px; font-size: 14px; color: var(--ink-2); }
+.orients .oi { height: 30px; display: grid; place-items: center; }
+.orients .num { text-align: right; }
+.orients .ot { height: 10px; background: var(--cell); border-radius: 0 4px 4px 0; }
+.orients .ob { height: 100%; border-radius: 0 4px 4px 0; }
 
 #tip {
   position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg);
@@ -1136,10 +1141,13 @@ function pieces(k) {
   const entries = [...st.orient[p].entries()].sort((x, y) => y[1] - x[1]);
   const top = entries[0][1];
   document.getElementById('piece-orients').innerHTML =
-    `<h4 style="grid-column:1/-1;margin:0;font-size:14px;color:var(--ink-2)">${entries.length} orientation${entries.length > 1 ? 's' : ''} used</h4>` +
+    `<h4>${entries.length} orientation${entries.length > 1 ? 's' : ''} used</h4>` +
     entries.map(([kk, n]) => {
       const pts = kk.split(';').map(t => t.split(',').map(Number));
-      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${pct(n / st.N * 100)}</div><div class="ob" style="width:${n / top * 100}%;background:${pieceColor(k, p)}"></div></div></div>`;
+      // Icon cells shrink so the longest side fits the 28px row.
+      const u = Math.min(7, Math.floor(28 / (Math.max(...pts.flat()) + 1)));
+      return `<div class="oi">${pieceIcon(k, p, u, pts)}</div><div class="num">${pct(n / st.N * 100)}</div>` +
+        `<div class="ot"><div class="ob" style="width:${n / top * 100}%;background:${pieceColor(k, p)}"></div></div>`;
     }).join('');
 }
 
