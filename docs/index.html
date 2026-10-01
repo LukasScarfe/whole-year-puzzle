@@ -308,8 +308,8 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </div>
     <nav class="nav">
       <div class="tabs" role="group" aria-label="View">
-        <button id="tab-play" data-view="play" aria-pressed="false">Play</button>
-        <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
+        <button id="tab-play" data-view="play" aria-pressed="true">Play</button>
+        <button id="tab-solutions" data-view="solutions" aria-pressed="false">Solutions</button>
         <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
       </div>
       <div class="seg" role="group" aria-label="Puzzle shape" id="shape-seg">
@@ -322,7 +322,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 </div>
 
 <main class="wrap">
-  <div id="view-play" hidden>
+  <div id="view-play">
     <div class="day-head">
       <div class="day-title" id="play-date-slot">
         <h2 id="play-title"></h2>
@@ -346,7 +346,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </div>
   </div>
 
-  <div id="view-solutions">
+  <div id="view-solutions" hidden>
     <div class="day-head">
       <div class="day-title">
         <div class="date-ctl">
@@ -592,7 +592,7 @@ if (SHAPES.includes(OG)) {
 
 /* ---------- state ---------- */
 const now = new Date();
-const state = { view: 'solutions', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [] };
+const state = { view: 'play', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [] };
 try {
   const saved = JSON.parse(localStorage.getItem('wya-state') || '{}');
   if (SHAPES.includes(saved.shape)) state.shape = saved.shape;
