@@ -204,7 +204,10 @@ svg text { font-family: var(--font-body); }
 .keys { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); align-items: center; flex-wrap: wrap; }
 .keys i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .ramp { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-.ramp .bar { width: 120px; height: 10px; border-radius: 3px; }
+.ramp .bar { width: 120px; height: 10px; border-radius: 3px; position: relative; }
+.ramp .tick { position: absolute; top: 0; height: 10px; width: 1px; background: var(--ink); opacity: .55; }
+.ramp .tick span { position: absolute; top: 12px; left: 0; transform: translateX(-50%); font-size: 10px; line-height: 1; color: var(--muted); }
+.ramp.has-ticks { padding-bottom: 12px; }
 
 .insights { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
 .insight { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
@@ -803,9 +806,18 @@ function niceTicks(max, count = 5) {
 }
 // Maps a value to 0..1 with the median at 0.5 (yellow), so red = below a typical date, green = above.
 const scaleT = (v, lo, mid, hi) => v <= mid ? 0.5 * (v - lo) / (mid - lo || 1) : 0.5 + 0.5 * (v - mid) / (hi - mid || 1);
+// Same, on a log scale: for counts that run from a handful to hundreds, equal colour steps are equal ratios.
+const scaleLogT = (v, lo, mid, hi) => scaleT(Math.log(v), Math.log(lo), Math.log(mid), Math.log(hi));
 const medianOf = xs => { const a = [...xs].sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; };
-function rampLegend(el, lo, hi, label, mid) {
-  el.innerHTML = `<span class="num">${fmt(Math.round(lo))}</span><span class="bar" style="background:linear-gradient(90deg,${Array.from({ length: 11 }, (_, i) => seq(i / 10)).join(',')})"></span><span class="num">${fmt(Math.round(hi))}</span>${label ? `<span>${label}${mid != null ? ` · yellow = median (${fmt(Math.round(mid))})` : ''}</span>` : ''}`;
+function rampLegend(el, lo, hi, label, mid, log = false) {
+  // On a log ramp, mark the round numbers (10, 100, ...) so the uneven spacing is visible.
+  let ticks = '';
+  if (log) for (let v = 10; v < hi; v *= 10) {
+    const t = scaleLogT(v, lo, mid, hi);
+    if (t > 0.08 && t < 0.92) ticks += `<i class="tick" style="left:${(t * 100).toFixed(1)}%"><span>${fmt(v)}</span></i>`;
+  }
+  el.classList.toggle('has-ticks', !!ticks);
+  el.innerHTML = `<span class="num">${fmt(Math.round(lo))}</span><span class="bar" style="background:linear-gradient(90deg,${Array.from({ length: 11 }, (_, i) => seq(i / 10)).join(',')})">${ticks}</span><span class="num">${fmt(Math.round(hi))}</span>${label ? `<span>${label}</span>` : ''}`;
 }
 
 function renderStats() {
@@ -872,7 +884,7 @@ function pairMatrix(k) {
   // Lower triangle: row = later cell, column = earlier cell.
   for (let b = 1; b < n; b++) for (let a = 0; a < b; a++) {
     const v = pi.get(a, b), isDate = (a < 12) !== (b < 12);
-    const fill = v ? seq(scaleT(v, lo, mid, hi)) : C.ink;
+    const fill = v ? seq(scaleLogT(v, lo, mid, hi)) : C.ink;
     out += `<rect x="${L + a * cs + 0.5}" y="${T + b * cs + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5" fill="${fill}"
       data-tip="<b>${s.labels[a]} + ${s.labels[b]}</b> open: ${fmt(v)} solutions${isDate ? '' : '<br>not a calendar date'}"
       ${isDate && valid(a + 1, b - 11) ? `data-go="${a + 1}-${b - 11}" style="cursor:pointer"` : ''}/>`;
@@ -886,7 +898,7 @@ function pairMatrix(k) {
   }
   out += `<text x="${L + 12 * cs + 6}" y="${T + 12 * cs - 4}" font-size="12" fill="${C.ink}">↙ outlined: month + day (the date settings)</text>`;
   document.getElementById('pairs').innerHTML = out + '</svg>';
-  rampLegend(document.getElementById('pairs-ramp'), lo, hi, `solutions · ${C.dark ? 'white' : 'black'} = none`, mid);
+  rampLegend(document.getElementById('pairs-ramp'), lo, hi, `solutions, log scale · ${C.dark ? 'white' : 'black'} = none`, mid, true);
   document.getElementById('pairs-sub').textContent =
     `The board can be tiled with any two cells left open, including two months or two days. Each square is one pair; ` +
     `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
@@ -933,7 +945,7 @@ function calendarHeatmap(k) {
   const cw = 22, ch = 22, L = 40, T = 20;
   const W = L + 31 * cw + 4, H = T + 12 * ch + 4;
   const lo = s.sorted[0].n, hi = s.sorted[s.sorted.length - 1].n;
-  const tt = n => scaleT(n, lo, s.median, hi);
+  const tt = n => scaleLogT(n, lo, s.median, hi);
   let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Solutions per date, ${s.name}">
     <defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="${C.surface}"/><line x1="0" y1="0" x2="0" y2="5" stroke="${C.hatch}" stroke-width="2"/></pattern></defs>`;
   for (let d = 1; d <= 31; d++) if (d === 1 || d % 5 === 0 || d === 31)
@@ -948,7 +960,7 @@ function calendarHeatmap(k) {
     }
   }
   document.getElementById('cal').innerHTML = out + '</svg>';
-  rampLegend(document.getElementById('cal-ramp'), lo, hi, 'solutions', s.median);
+  rampLegend(document.getElementById('cal-ramp'), lo, hi, 'solutions, log scale', s.median, true);
 }
 
 function boardSVG(k, values, { cs = 46, fmtV = v => v.toFixed(0), tip, lo, hi, mid = null, showLabel = true } = {}) {
