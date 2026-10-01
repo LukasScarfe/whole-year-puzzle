@@ -292,6 +292,14 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 :root.og body { margin: 0; padding: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; }
 :root.dragging, :root.dragging * { cursor: grabbing !important; }
 @media (max-width: 760px) { .play { grid-template-columns: minmax(0, 1fr); } }
+/* Phone: the tools shrink to one row of icon buttons, so the board and tray fit on screen together. */
+@media (max-width: 640px) {
+  .play-tools { flex-wrap: nowrap; gap: 6px; }
+  .play-tools .text-btn { flex: 1 1 0; min-width: 0; padding: 0 4px; font-size: 18px; }
+  .play-tools #play-ccw, .play-tools #play-cw { font-size: 24px; } /* these glyphs draw small */
+  .play-tools #play-clear { flex-grow: 1.6; font-size: 14px; }
+  .play-tools .lbl { display: none; }
+}
 
 #tip {
   position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg);
@@ -351,12 +359,12 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
       <svg id="play-board" aria-label="Puzzle board"></svg>
       <div class="play-side">
         <div class="play-tools">
-          <button class="text-btn" id="play-ccw" title="Rotate left (A)">&#8634; Rotate left</button>
-          <button class="text-btn" id="play-cw" title="Rotate right (D)">&#8635; Rotate right</button>
-          <button class="text-btn" id="play-flip" title="Flip horizontal (S)">&#8644; Flip horizontal</button>
-          <button class="text-btn" id="play-flipv" title="Flip vertical (W)">&#8645; Flip vertical</button>
-          <button class="text-btn" id="play-clear">Clear board</button>
-          <button class="text-btn" id="play-timer-btn" aria-pressed="false" title="Time how long you take">&#9201; Timer</button>
+          <button class="text-btn" id="play-ccw" title="Rotate left (A)" aria-label="Rotate left">&#8634;<span class="lbl"> Rotate left</span></button>
+          <button class="text-btn" id="play-cw" title="Rotate right (D)" aria-label="Rotate right">&#8635;<span class="lbl"> Rotate right</span></button>
+          <button class="text-btn" id="play-flip" title="Flip horizontal (S)" aria-label="Flip horizontal">&#8644;<span class="lbl"> Flip horizontal</span></button>
+          <button class="text-btn" id="play-flipv" title="Flip vertical (W)" aria-label="Flip vertical">&#8645;<span class="lbl"> Flip vertical</span></button>
+          <button class="text-btn" id="play-clear" aria-label="Clear board">Clear<span class="lbl"> board</span></button>
+          <button class="text-btn" id="play-timer-btn" aria-pressed="false" title="Time how long you take" aria-label="Timer">&#9201;<span class="lbl"> Timer</span></button>
         </div>
         <div class="tray" id="tray"></div>
         <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: A / D rotate left / right, W flip vertical, S flip horizontal, Space returns it to the tray.</p>
