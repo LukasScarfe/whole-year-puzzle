@@ -150,7 +150,10 @@ dialog .icon-btn { width: 32px; }
   .masthead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "me theme" "title title" "nav nav"; --title: 19px; }
   .nav { gap: 8px; }
   .tabs button, .seg button { padding: 0 6px; font-size: 13px; }
-  .seg svg { display: none; }
+  /* Phone: the shape buttons show only their board outline, leaving the tabs more room. */
+  .seg { flex: none; }
+  .seg button { padding: 0 10px; }
+  .seg .lbl { display: none; }
   .masthead-bar { padding-block: 10px; }
   .masthead { row-gap: 8px; }
   .boardcard .cap { max-width: none; }
@@ -1668,7 +1671,10 @@ function shapeIcon(k) {
   return `<svg width="${7 * u}" height="${7 * u}" viewBox="0 0 ${7 * u} ${7 * u}" aria-hidden="true">` +
     S[k].cells.map(([r, c]) => `<rect x="${c * u + 0.5}" y="${r * u + 0.5}" width="${u - 1}" height="${u - 1}" fill="currentColor"/>`).join('') + '</svg>';
 }
-document.querySelectorAll('#shape-seg button').forEach(b => { b.innerHTML = shapeIcon(b.dataset.shape) + SHAPE_LABEL[b.dataset.shape]; });
+document.querySelectorAll('#shape-seg button').forEach(b => {
+  b.innerHTML = shapeIcon(b.dataset.shape) + `<span class="lbl">${SHAPE_LABEL[b.dataset.shape]}</span>`;
+  b.setAttribute('aria-label', SHAPE_LABEL[b.dataset.shape]);
+});
 const monthSel = document.getElementById('month'), daySel = document.getElementById('day');
 monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
 // Phones get short month names so the date row always fits on one line.
