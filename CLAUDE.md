@@ -37,7 +37,7 @@ done until it looks good on both.
 
 - **Naming:** always "Shape 1" / "Shape 2" / "Heart" on the site — never "Puzzle 1", "Puzzle Shape 1"
   or "Pointed Heart". The names come from `name` in `solve.py` (and so `data.js`). The Heart has one
-  piece set (F L N P Z l o s t, from calendar-puzzle-designs' Pointed Heart); the old two-set keys
+  piece set (F N P Y Z l o s t, from calendar-puzzle-designs' Pointed Heart); the old two-set keys
   `heart1` / `heart2` survive only as aliases so published links still open the Heart.
 - **Dates:** short month + day, e.g. "Jan 25".
 - **Numbers:** whole numbers (floor/round) everywhere, except where a fraction is the point, like

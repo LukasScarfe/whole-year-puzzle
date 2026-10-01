@@ -29,15 +29,15 @@ puzzle is selected.
 
 | | Shape 1 | Shape 2 | Heart |
 |---|---|---|---|
-| Pieces | 9: L, l (4-cell L), O (square), P, S, T, U, X, Z | 8: L, N, P, R (2×3 rectangle), U, V, Y, Z | 9: F, L, N, P, Z, l, o, s, t |
-| Total solutions | 40,219 | 24,405 | 37,667 |
-| Fewest | May 21 (11) | Oct 6 (7) | May 2, Nov 8 (5) |
-| Most | Jan 28 (734) | Jan 25 (216) | Jan 1, Sep 9 (425) |
+| Pieces | 9: L, l (4-cell L), O (square), P, S, T, U, X, Z | 8: L, N, P, R (2×3 rectangle), U, V, Y, Z | 9: F, N, P, Y, Z, l, o, s, t |
+| Total solutions | 40,219 | 24,405 | 48,923 |
+| Fewest | May 21 (11) | Oct 6 (7) | Feb 2, Aug 8 (10) |
+| Most | Jan 28 (734) | Jan 25 (216) | Jan 18, Sep 10 (504) |
 
 Shape 2 is the well-known "DragonFjord" calendar puzzle set, and its totals match published counts.
 The Heart is an original 9×7 board (two square lobes over a body tapering to a three-wide point) and
 piece set from the sister [calendar-puzzle-designs](../calendar-puzzle-designs) search ("Pointed
-Heart" there). It is solvable on every date; its hardest dates are harder than either Shape's.
+Heart" there). It is solvable on every date, with a difficulty range between the two Shapes'.
 
 Placements are anchored over the whole bounding box, not just over board cells, so pieces whose
 normalised corner lands off a *concave* board (as on the Heart) are still counted — see `solve.py`.

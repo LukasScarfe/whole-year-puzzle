@@ -34,13 +34,13 @@ HEART_CELLS = [
 ]
 
 # The Heart pieces as one canonical orientation each; the solver generates all rotations/reflections.
-# Pentominoes by their standard letter, tetrominoes lower case. Alphabetical (L before l).
+# Pentominoes by their standard letter, tetrominoes lower case. Alphabetical (capitals first).
 # Coloured by name per shape (`colors`), since the Heart's pieces aren't shared with Shapes 1 and 2.
 HEART_PIECES = {
     'F': [(0, 1), (0, 2), (1, 0), (1, 1), (2, 1)],
-    'L': [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],
     'N': [(0, 0), (0, 1), (0, 2), (1, 2), (1, 3)],
     'P': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)],
+    'Y': [(0, 1), (1, 0), (1, 1), (2, 1), (3, 1)],
     'Z': [(0, 0), (0, 1), (1, 1), (2, 1), (2, 2)],
     'l': [(0, 0), (0, 1), (0, 2), (1, 0)],
     'o': [(0, 0), (0, 1), (1, 0), (1, 1)],
@@ -48,7 +48,7 @@ HEART_PIECES = {
     't': [(0, 0), (0, 1), (0, 2), (1, 1)],
 }
 HEART_COLORS = {
-    'F': '#27b3c2', 'L': '#a07a55', 'N': '#8b5cf6', 'P': '#f08a24', 'Z': '#4fae3f',
+    'F': '#27b3c2', 'N': '#8b5cf6', 'P': '#f08a24', 'Y': '#a07a55', 'Z': '#4fae3f',
     'l': '#3b7ddd', 'o': '#d64545', 's': '#e0b000', 't': '#e0609a',
 }
 
