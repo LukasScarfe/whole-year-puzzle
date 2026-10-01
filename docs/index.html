@@ -1067,10 +1067,27 @@ function scatter() {
   });
   // Label the extremes of each shape.
   const idx = [xs.indexOf(Math.max(...xs)), ys.indexOf(Math.max(...ys)), xs.indexOf(Math.min(...xs)), ys.indexOf(Math.min(...ys))];
+  // Each label tries spots around its dot and takes the one that covers the fewest other dots,
+  // staying inside the plot. Ties go to up-left, which keeps the top point off the y = x caption.
+  const dots = xs.map((x, i) => [px(x), py(ys[i])]);
+  const spots = [[-14, -10, 'end'], [14, -10, 'start'], [-14, 22, 'end'], [14, 22, 'start'], [0, -16, 'middle'], [0, 30, 'middle']];
   [...new Set(idx)].forEach(i => {
-    // The top point sits by the y = x caption, so its label goes to the left.
-    const x0 = px(xs[i]), anchor = x0 > L + P - 80 || i === idx[1] ? 'end' : 'start';
-    out += `<text x="${x0 + (anchor === 'end' ? -8 : 8)}" y="${py(ys[i]) - 6}" text-anchor="${anchor}" font-size="12" fill="${C.ink}">${dateName(a[i].m, a[i].d)}</text>`;
+    const [x0, y0] = dots[i], name = dateName(a[i].m, a[i].d), w = name.length * 7 + 4;
+    const box = ([dx, dy, an]) => {
+      const x1 = x0 + dx - (an === 'end' ? w : an === 'middle' ? w / 2 : 0);
+      return [x1, y0 + dy - 11, x1 + w, y0 + dy + 3];
+    };
+    const cost = s => {
+      const [x1, y1, x2, y2] = box(s);
+      const hits = dots.filter(([x, y], j) => j !== i && x > x1 - 4 && x < x2 + 4 && y > y1 - 4 && y < y2 + 4).length;
+      return hits + (x1 < L || x2 > L + P || y1 < T || y2 > T + P ? 100 : 0);
+    };
+    const spot = spots.reduce((best, s) => cost(s) < cost(best) ? s : best), [dx, dy, an] = spot;
+    // A thin leader from the dot's edge to the nearest point of the label.
+    const [x1, y1, x2, y2] = box(spot);
+    const tx = Math.min(Math.max(x0, x1), x2), ty = Math.min(Math.max(y0, y1), y2), len = Math.hypot(tx - x0, ty - y0) || 1;
+    out += `<line x1="${x0 + (tx - x0) / len * 5}" y1="${y0 + (ty - y0) / len * 5}" x2="${tx}" y2="${ty}" stroke="${C.ink2}" stroke-width="0.75"/>`;
+    out += `<text x="${x0 + dx}" y="${y0 + dy}" text-anchor="${an}" font-size="12" fill="${C.ink}">${name}</text>`;
   });
   document.getElementById('scatter').innerHTML = out + '</svg>';
   const pct = n => Math.round(n / xs.length * 100) + '%';
