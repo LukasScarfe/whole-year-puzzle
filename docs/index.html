@@ -216,12 +216,17 @@ dialog .dfoot { display: flex; justify-content: center; margin-top: 14px; }
 .stats-intro { padding-block: 28px 8px; max-width: 70ch; }
 .stats-intro h2 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; font-weight: 800; }
 .stats-intro p { color: var(--ink-2); margin: 10px 0 0; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 20px 0 8px; }
+/* Six tiles, always in full rows (6, 3, 2 or 1 across) so no row is left with a gap. */
+#view-stats { container-type: inline-size; }
+.tiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 20px 0 8px; }
 /* Tiles share their row's label/value/subtext tracks, so numbers line up even when a label wraps. */
 .tile { background: var(--surface); padding: 14px 16px; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
 .tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
 .tile .v { color: var(--ink); font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
 .tile .s { font-size: 13px; color: var(--ink-2); }
+@container (min-width: 300px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (min-width: 500px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (min-width: 1000px) { .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 button.link { border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--axis); text-underline-offset: 3px; }
 
 section.chart { padding-block: 28px 8px; border-top: 1px solid var(--line); margin-top: 24px; }
@@ -1354,6 +1359,7 @@ function renderStats() {
     ['Median solutions per date', fmt(s.median), ''],
     ['Easiest date', hi.n, highs.map(x => go(x.m, x.d)).join(', ')],
     ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
+    ['Difficulty spread', `${Math.round(hi.n / lo.n)}×`, `The easiest date has ${Math.round(hi.n / lo.n)} times as many solutions as the hardest`],
   ].map(([k1, v, sub]) => `<div class="tile"><div class="k">${k1}</div><div class="v num">${v}</div><div class="s">${sub}</div></div>`).join('');
 
   calendarHeatmap(k);
