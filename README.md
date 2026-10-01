@@ -4,12 +4,14 @@ Every solution to [The Whole Year Puzzle](https://quilici.us/TheWholeYearPuzzle/
 puzzle, Puzzle Shapes 1 and 2, for every date, plus a static site to browse them and explore
 statistics.
 
-**Site:** https://year-puzzle.michelleyap.ca/
+**Site:** https://yearpuzzle.michelleyap.ca/
 
 - **Play:** try the puzzle yourself for the selected shape and date: drag pieces onto the board,
   rotate and flip them (buttons, tapping a selected piece, or A / D to rotate, W / S to flip, Space to send back to the tray). When it's solved,
   confetti and a popup tell you which numbered solution you found, open it in Solutions, or share it:
   one link to try the same date yourself and a separate, clearly marked spoiler link to your solution.
+  An optional Timer (remembered between visits) starts with your first piece, stops when it's solved,
+  and adds your time to the popup and the share text.
 - **Solutions:** pick a shape and a date to see every solution, ordered by the piece in each cell
   reading from the top-left. The *Find your solution* picker narrows the list one cell at a time. A found or enlarged
   solution has the same Share button as Play, for solves done on a physical puzzle.

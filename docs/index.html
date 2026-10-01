@@ -6,7 +6,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <meta property="og:title" content="The Whole Year Puzzle Solutions">
 <meta property="og:description" content="Play the Whole Year Puzzle for any date, see every solution, and explore the statistics.">
-<meta property="og:image" content="https://year-puzzle.michelleyap.ca/og-shape2.png">
+<meta property="og:image" content="https://yearpuzzle.michelleyap.ca/og-shape2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -195,6 +195,7 @@ dialog::backdrop { background: rgba(10, 11, 12, .55); }
 dialog .dhead { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
 dialog canvas { display: block; max-width: 100%; height: auto; }
 dialog .dnav { display: flex; gap: 6px; }
+dialog .dnav [hidden] { display: none; }
 dialog .dfoot { display: flex; justify-content: center; margin-top: 14px; }
 
 /* ---------- stats view ---------- */
@@ -260,6 +261,7 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 .play-side { display: grid; gap: var(--gap); align-content: start; }
 .play-tools { display: flex; flex-wrap: wrap; gap: 8px; }
 .play-tools .text-btn:disabled { opacity: .45; cursor: default; }
+.play-tools .text-btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .tray { display: flex; flex-wrap: wrap; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
 .tray .slot { width: var(--slot); height: var(--slot); display: grid; place-items: center; }
 .tray svg { display: block; overflow: visible; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -330,6 +332,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
         <h2 id="play-title"></h2>
         <p class="day-stat" id="play-count"></p>
         <p class="day-stat" id="play-status"></p>
+        <p class="day-stat" id="play-timer" hidden></p>
       </div>
     </div>
     <div class="play">
@@ -341,6 +344,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
           <button class="text-btn" id="play-flip" title="Flip horizontal (S)">&#8644; Flip horizontal</button>
           <button class="text-btn" id="play-flipv" title="Flip vertical (W)">&#8645; Flip vertical</button>
           <button class="text-btn" id="play-clear">Clear board</button>
+          <button class="text-btn" id="play-timer-btn" aria-pressed="false" title="Time how long you take">&#9201; Timer</button>
         </div>
         <div class="tray" id="tray"></div>
         <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: A / D rotate left / right, W flip vertical, S flip horizontal, Space returns it to the tray.</p>
@@ -867,6 +871,7 @@ function showDialog(i) {
     (shown.length < total ? ` (${dlgI + 1} of ${shown.length} matching)` : '');
   const cs = Math.min(52, Math.floor((window.innerWidth - 72) / 7));
   drawSolution(document.getElementById('dlg-canvas'), k, sol, cs, true);
+  document.querySelectorAll('#dlg-prev, #dlg-next').forEach(b => b.hidden = shown.length < 2);
   document.getElementById('dlg-share').textContent = 'Share!';
   if (!dlg.open) dlg.showModal();
 }
@@ -878,6 +883,7 @@ document.getElementById('dlg-next').onclick = () => showDialog(dlgI + 1);
 document.getElementById('dlg-close').onclick = () => dlg.close();
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener('keydown', e => {
+  if (shown.length < 2) return;
   if (e.key === 'ArrowLeft') showDialog(dlgI - 1);
   if (e.key === 'ArrowRight') showDialog(dlgI + 1);
 });
@@ -886,7 +892,7 @@ dlg.addEventListener('keydown', e => {
 // One game at a time: changing the shape or date starts a fresh board.
 // Each piece keeps its current orientation (cells normalised to start at 0,0) and its board spot, or null in the tray.
 const SVGNS = 'http://www.w3.org/2000/svg';
-const P = { id: '', pieces: [], sel: null, drag: null, cs: 56, tcs: 28, pad: 0 };
+const P = { id: '', pieces: [], sel: null, drag: null, cs: 56, tcs: 28, pad: 0, t0: null, t1: null, timer: false };
 const dims = cells => [Math.max(...cells.map(q => q[0])) + 1, Math.max(...cells.map(q => q[1])) + 1];
 const rotCW = cells => { const [H] = dims(cells); return cells.map(([r, c]) => [c, H - 1 - r]); };
 const rotCCW = cells => { const [, W] = dims(cells); return cells.map(([r, c]) => [W - 1 - c, r]); };
@@ -898,6 +904,7 @@ function playReset() {
   P.id = `${state.shape}:${state.m}-${state.d}`;
   P.pieces = S[state.shape].pieces.map(p => ({ cells: p.shape.map(q => [...q]), at: null }));
   P.sel = null;
+  P.t0 = P.t1 = null;
 }
 // The board cells piece p would cover at `at`, or null if any would be off the board, on the date or on another piece.
 function fits(p, cells, at) {
@@ -998,6 +1005,10 @@ function drawTray() {
 function playStatus() {
   const k = state.shape, s = S[k], { m, d } = state, dc = playDates(), el = document.getElementById('play-status');
   const placed = P.pieces.filter(q => q.at).length;
+  // The clock starts with the first piece on the board and stops when it's solved.
+  if (placed && P.t0 === null) P.t0 = Date.now();
+  P.t1 = playSolved() ? (P.t1 ?? Date.now()) : null;
+  showTimer();
   if (!playSolved()) {
     P.won = false;
     el.innerHTML = `Cover every cell except <b>${s.labels[dc[0]]}</b> and <b>${s.labels[dc[1]]}</b>. <span class="num">${placed}</span> of ${P.pieces.length} pieces placed.`;
@@ -1008,7 +1019,7 @@ function playStatus() {
   const num = sortedSolutions(k, m, d).indexOf(sol.join('')) + 1, total = s.counts[key(m, d)];
   const line = `That's solution <b>#${fmt(num)}</b> of ${fmt(total)}.`;
   el.innerHTML = `<b>Solved!</b> ${line} <button class="link" id="play-again">Show result</button>`;
-  P.result = { k, m, d, sol: sol.join(''), num, total };
+  P.result = { k, m, d, sol: sol.join(''), num, total, time: P.timer ? clock(P.t1 - P.t0) : null };
   document.getElementById('play-again').onclick = () => showWin(false);
   // Celebrate once per solve, not on every redraw (theme switch, resize).
   if (!P.won) { P.won = true; showWin(true); }
@@ -1026,7 +1037,8 @@ function showSolution(k, m, d, sol) {
 const winDlg = document.getElementById('win');
 function showWin(party) {
   const R = P.result;
-  document.getElementById('win-line').innerHTML = `That's solution <b class="num">#${fmt(R.num)}</b> of ${fmt(R.total)}.`;
+  document.getElementById('win-line').innerHTML = `That's solution <b class="num">#${fmt(R.num)}</b> of ${fmt(R.total)}` +
+    (R.time ? `, in <b class="num">${R.time}</b>.` : '.');
   document.getElementById('win-share').textContent = 'Share!';
   if (!winDlg.open) winDlg.showModal();
   if (party) confetti();
@@ -1038,11 +1050,11 @@ document.getElementById('win-show').onclick = () => {
 };
 // Links go to the public site. Each shape has its own entry page so a link preview shows that shape's
 // empty board, never the solution; it forwards to the main page with the shape filled in.
-const SITE = 'https://year-puzzle.michelleyap.ca/';
+const SITE = 'https://yearpuzzle.michelleyap.ca/';
 // Share a solution: the number, a no-spoiler link to try that date, and a separate spoiler link.
 // Used by the Play win popup and, for solutions done on a physical puzzle, by the Solutions view.
 async function shareSolution(R, btn) {
-  const text = `I solved The Whole Year Puzzle (${SHAPE_LABEL[R.k]}) for ${dateName(R.m, R.d)}: solution #${fmt(R.num)} of ${fmt(R.total)}!\n\n` +
+  const text = `I solved The Whole Year Puzzle (${SHAPE_LABEL[R.k]}) for ${dateName(R.m, R.d)}: solution #${fmt(R.num)} of ${fmt(R.total)}${R.time ? ` in ${R.time}` : ''}!\n\n` +
     `🧩 Try it yourself (no spoilers):\n${SITE}${R.k}/#play/${R.m}-${R.d}\n\n` +
     `👀 See my solution (spoiler!):\n${SITE}${R.k}/#solutions/${R.m}-${R.d}/${R.num}`;
   if (navigator.share) {
@@ -1198,7 +1210,29 @@ document.getElementById('play-cw').onclick = () => { if (P.sel !== null) turn(P.
 document.getElementById('play-ccw').onclick = () => { if (P.sel !== null) turn(P.sel, 'ccw'); };
 document.getElementById('play-flip').onclick = () => { if (P.sel !== null) turn(P.sel, 'flip'); };
 document.getElementById('play-flipv').onclick = () => { if (P.sel !== null) turn(P.sel, 'flipv'); };
-document.getElementById('play-clear').onclick = () => { P.pieces.forEach(q => { q.at = null; }); P.sel = null; renderPlay(); };
+document.getElementById('play-clear').onclick = () => { P.pieces.forEach(q => { q.at = null; }); P.sel = null; P.t0 = null; renderPlay(); };
+// Optional timer: always running in the background, only shown (and shared) when switched on. The choice is remembered.
+const clock = ms => {
+  const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), mm = Math.floor(t / 60) % 60, ss = String(t % 60).padStart(2, '0');
+  return h ? `${h}:${String(mm).padStart(2, '0')}:${ss}` : `${mm}:${ss}`;
+};
+function showTimer() {
+  const el = document.getElementById('play-timer');
+  el.hidden = !P.timer;
+  if (!P.timer) return;
+  const ms = P.t0 === null ? 0 : (P.t1 ?? Date.now()) - P.t0;
+  el.innerHTML = `&#9201; <b class="num">${clock(ms)}</b>` + (P.t0 === null ? ' · starts with your first piece' : '');
+}
+function setTimer(on) {
+  P.timer = on;
+  document.getElementById('play-timer-btn').setAttribute('aria-pressed', on);
+  try { localStorage.setItem('wya-timer', on ? '1' : '0'); } catch (e) {}
+  showTimer();
+}
+document.getElementById('play-timer-btn').onclick = () => setTimer(!P.timer);
+try { P.timer = localStorage.getItem('wya-timer') === '1'; } catch (e) { P.timer = false; }
+setTimer(P.timer);
+setInterval(() => { if (P.timer && P.t0 !== null && P.t1 === null && state.view === 'play') showTimer(); }, 250);
 document.addEventListener('keydown', e => {
   if (state.view !== 'play' || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('select, input, textarea')) return;
   if (e.key === 'Escape') { if (P.drag) cancelDrag(); else if (P.sel !== null) { P.sel = null; renderPlay(); } return; }
