@@ -1,4 +1,4 @@
-# The Whole Year Puzzle Solutions
+# The Whole Year Puzzle
 
 Every solution to [The Whole Year Puzzle](https://quilici.us/TheWholeYearPuzzle/index.php) calendar
 puzzle, Puzzle Shapes 1 and 2, for every date, plus a static site to browse them and explore

@@ -1,4 +1,4 @@
-# CLAUDE.md — The Whole Year Puzzle Solutions
+# CLAUDE.md — The Whole Year Puzzle
 
 `README.md` covers what the project is, the results, and what each file does. This file covers how
 to change it.
