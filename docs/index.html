@@ -6,7 +6,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <meta property="og:title" content="The Whole Year Puzzle Solutions">
 <meta property="og:description" content="Play the Whole Year Puzzle for any date, see every solution, and explore the statistics.">
-<meta property="og:image" content="https://lukasscarfe.github.io/whole-year-puzzle/og-shape2.png">
+<meta property="og:image" content="https://world-puzzle.michelleyap.ca/og-shape2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -1034,7 +1034,7 @@ document.getElementById('win-show').onclick = () => {
 };
 // Links go to the public site. Each shape has its own entry page so a link preview shows that shape's
 // empty board, never the solution; it forwards to the main page with the shape filled in.
-const SITE = 'https://lukasscarfe.github.io/whole-year-puzzle/';
+const SITE = 'https://world-puzzle.michelleyap.ca/';
 document.getElementById('win-share').onclick = async () => {
   const R = P.result, btn = document.getElementById('win-share');
   const text = `I solved The Whole Year Puzzle (${SHAPE_LABEL[R.k]}) for ${dateName(R.m, R.d)}: solution #${fmt(R.num)} of ${fmt(R.total)}!\n\n` +

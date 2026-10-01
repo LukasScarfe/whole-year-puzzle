@@ -4,7 +4,7 @@ Every solution to [The Whole Year Puzzle](https://quilici.us/TheWholeYearPuzzle/
 puzzle, Puzzle Shapes 1 and 2, for every date, plus a static site to browse them and explore
 statistics.
 
-**Site:** https://lukasscarfe.github.io/whole-year-puzzle/
+**Site:** https://world-puzzle.michelleyap.ca/
 
 - **Play:** try the puzzle yourself for the selected shape and date: drag pieces onto the board,
   rotate and flip them (buttons, tapping a selected piece, or A / D to rotate, W / S to flip, Space to send back to the tray). When it's solved,
