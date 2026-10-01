@@ -53,6 +53,18 @@ done until it looks good on both.
   that don't exist" (a small table) and "How do the Shapes compare?" (the scatter, last on the page,
   on one shared log scale for both axes).
 
+## Shared links and previews
+
+The Play win popup's Share text links to `docs/shape1/` or `docs/shape2/` (`#play/9-30` to try it,
+`#solutions/9-30/20` for the spoiler), always on the public site. Those pages exist only for their
+link-preview tags, which show that shape's empty board, and forward to the main page. The preview
+images `docs/og-shape1.png` / `og-shape2.png` come from the page's `?og=shape1` mode. If the board's
+look changes, regenerate them with the preview running:
+
+```sh
+~/scripts/screenshot.sh "http://192.168.1.241:8799/?og=shape1" docs/og-shape1.png 1200 630 2500 viewport
+```
+
 ## Dependencies
 
 No build step: the site is hand-written `docs/index.html` + generated `docs/data.js`, and the
