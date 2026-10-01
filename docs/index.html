@@ -195,6 +195,7 @@ dialog::backdrop { background: rgba(10, 11, 12, .55); }
 dialog .dhead { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
 dialog canvas { display: block; max-width: 100%; height: auto; }
 dialog .dnav { display: flex; gap: 6px; }
+dialog .dfoot { display: flex; justify-content: center; margin-top: 14px; }
 
 /* ---------- stats view ---------- */
 .stats-intro { padding-block: 28px 8px; max-width: 70ch; }
@@ -240,6 +241,7 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { border: 1px solid var(--axis); background: var(--surface); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.chips .text-btn { border-radius: 8px; padding: 0 14px; height: 32px; font-size: 14px; }
 .chips button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 /* One row per orientation, every bar starting at the same x on one shared scale, so lengths compare directly.
    Rows are kept short enough that the list is never taller than the board beside it. */
@@ -488,6 +490,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </div>
   </div>
   <canvas id="dlg-canvas"></canvas>
+  <div class="dfoot"><button class="text-btn primary" id="dlg-share">Share!</button></div>
 </dialog>
 <dialog id="win" aria-labelledby="win-title">
   <button class="icon-btn" id="win-close" aria-label="Close">&#10005;</button>
@@ -789,7 +792,7 @@ function renderFinderAndGrid() {
   if (!n) { q.textContent = 'This date has no solutions.'; chips.innerHTML = ''; }
   else if (next === null) {
     q.innerHTML = `Found it: this is <b>solution #${shown[0][0]}</b> of ${fmt(n)}.`;
-    chips.innerHTML = '';
+    chips.innerHTML = '<button class="text-btn primary" id="finder-share">Share!</button>';
   } else {
     const tally = {};
     for (const [, x] of shown) tally[x[next]] = (tally[x[next]] || 0) + 1;
@@ -864,6 +867,7 @@ function showDialog(i) {
     (shown.length < total ? ` (${dlgI + 1} of ${shown.length} matching)` : '');
   const cs = Math.min(52, Math.floor((window.innerWidth - 72) / 7));
   drawSolution(document.getElementById('dlg-canvas'), k, sol, cs, true);
+  document.getElementById('dlg-share').textContent = 'Share!';
   if (!dlg.open) dlg.showModal();
 }
 document.getElementById('sol-grid').addEventListener('click', e => {
@@ -1035,8 +1039,9 @@ document.getElementById('win-show').onclick = () => {
 // Links go to the public site. Each shape has its own entry page so a link preview shows that shape's
 // empty board, never the solution; it forwards to the main page with the shape filled in.
 const SITE = 'https://year-puzzle.michelleyap.ca/';
-document.getElementById('win-share').onclick = async () => {
-  const R = P.result, btn = document.getElementById('win-share');
+// Share a solution: the number, a no-spoiler link to try that date, and a separate spoiler link.
+// Used by the Play win popup and, for solutions done on a physical puzzle, by the Solutions view.
+async function shareSolution(R, btn) {
   const text = `I solved The Whole Year Puzzle (${SHAPE_LABEL[R.k]}) for ${dateName(R.m, R.d)}: solution #${fmt(R.num)} of ${fmt(R.total)}!\n\n` +
     `🧩 Try it yourself (no spoilers):\n${SITE}${R.k}/#play/${R.m}-${R.d}\n\n` +
     `👀 See my solution (spoiler!):\n${SITE}${R.k}/#solutions/${R.m}-${R.d}/${R.num}`;
@@ -1047,10 +1052,16 @@ document.getElementById('win-share').onclick = async () => {
   // No clipboard API off https (e.g. the LAN preview): fall back to a hidden textarea and execCommand.
   const ta = document.createElement('textarea');
   ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-  winDlg.append(ta); ta.select();
+  btn.after(ta); ta.select();  // next to the button, so it's inside whichever modal is open
   btn.textContent = document.execCommand('copy') ? 'Copied to clipboard!' : 'Couldn\'t copy';
   ta.remove();
-};
+}
+document.getElementById('win-share').onclick = e => shareSolution(P.result, e.currentTarget);
+const solShare = num => ({ k: state.shape, m: state.m, d: state.d, num, total: S[state.shape].counts[key(state.m, state.d)] });
+document.getElementById('dlg-share').onclick = e => shareSolution(solShare(shown[dlgI][0]), e.currentTarget);
+document.getElementById('finder-chips').addEventListener('click', e => {
+  if (e.target.id === 'finder-share') shareSolution(solShare(shown[0][0]), e.target);
+});
 
 // A short burst of confetti in the piece colours, drawn above the popup (a popover sits in the top layer
 // too, opened after the dialog so it's on top). Skipped for anyone who prefers reduced motion.
