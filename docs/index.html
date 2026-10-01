@@ -244,6 +244,22 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 .orients .ot { height: 10px; background: var(--cell); border-radius: 0 4px 4px 0; }
 .orients .ob { height: 100%; border-radius: 0 4px 4px 0; }
 
+/* ---------- play view ---------- */
+.play { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px 32px; align-items: start; }
+#play-board { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+#play-board [data-pp], .tray svg { cursor: grab; }
+#play-board text { font-family: var(--font-mono); }
+.play-side { display: grid; gap: var(--gap); align-content: start; }
+.play-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.play-tools .text-btn:disabled { opacity: .45; cursor: default; }
+.tray { display: flex; flex-wrap: wrap; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.tray .slot { width: var(--slot); height: var(--slot); display: grid; place-items: center; }
+.tray svg { display: block; overflow: visible; touch-action: none; user-select: none; -webkit-user-select: none; }
+.play-hint { margin: 0; font-size: 13px; color: var(--muted); }
+.drag-float { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; overflow: visible; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .35)); }
+:root.dragging, :root.dragging * { cursor: grabbing !important; }
+@media (max-width: 760px) { .play { grid-template-columns: minmax(0, 1fr); } }
+
 #tip {
   position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg);
   padding: 6px 9px; border-radius: 6px; font-size: 13px; line-height: 1.35; max-width: 260px;
@@ -277,6 +293,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </div>
     <nav class="nav">
       <div class="tabs" role="group" aria-label="View">
+        <button id="tab-play" data-view="play" aria-pressed="false">Play</button>
         <button id="tab-solutions" data-view="solutions" aria-pressed="true">Solutions</button>
         <button id="tab-stats" data-view="stats" aria-pressed="false">Statistics</button>
       </div>
@@ -290,6 +307,29 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 </div>
 
 <main class="wrap">
+  <div id="view-play" hidden>
+    <div class="day-head">
+      <div class="day-title" id="play-date-slot">
+        <h2 id="play-title"></h2>
+        <p class="day-stat" id="play-count"></p>
+        <p class="day-stat" id="play-status"></p>
+      </div>
+    </div>
+    <div class="play">
+      <svg id="play-board" aria-label="Puzzle board"></svg>
+      <div class="play-side">
+        <div class="play-tools">
+          <button class="text-btn" id="play-ccw">&#8634; Rotate left</button>
+          <button class="text-btn" id="play-cw">&#8635; Rotate right</button>
+          <button class="text-btn" id="play-flip">&#8644; Flip</button>
+          <button class="text-btn" id="play-clear">Clear board</button>
+        </div>
+        <div class="tray" id="tray"></div>
+        <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: R rotate, Shift+R rotate back, F flip, Delete returns it to the tray.</p>
+      </div>
+    </div>
+  </div>
+
   <div id="view-solutions">
     <div class="day-head">
       <div class="day-title">
@@ -375,10 +415,10 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </section>
 
     <section class="chart">
-      <header><div><h3>Hardest and easiest dates</h3><p id="rank-sub"></p></div></header>
+      <header><div><h3>Easiest and hardest dates</h3><p id="rank-sub"></p></div></header>
       <div class="two">
-        <div class="panel"><h4>Fewest solutions</h4><table class="rank" id="rank-low"></table></div>
         <div class="panel"><h4>Most solutions</h4><table class="rank" id="rank-high"></table></div>
+        <div class="panel"><h4>Fewest solutions</h4><table class="rank" id="rank-low"></table></div>
       </div>
     </section>
 
@@ -522,6 +562,7 @@ try {
   if (SHAPES.includes(saved.shape)) state.shape = saved.shape;
 } catch (e) {}
 if (location.hash === '#stats') state.view = 'stats';
+if (location.hash === '#play') state.view = 'play';
 function save() { try { localStorage.setItem('wya-state', JSON.stringify({ shape: state.shape })); } catch (e) {} }
 
 /* ---------- board drawing ---------- */
@@ -792,6 +833,261 @@ dlg.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') showDialog(dlgI + 1);
 });
 
+/* ---------- play view ---------- */
+// One game at a time: changing the shape or date starts a fresh board.
+// Each piece keeps its current orientation (cells normalised to start at 0,0) and its board spot, or null in the tray.
+const SVGNS = 'http://www.w3.org/2000/svg';
+const P = { id: '', pieces: [], sel: null, drag: null, cs: 56, tcs: 28, pad: 0 };
+const dims = cells => [Math.max(...cells.map(q => q[0])) + 1, Math.max(...cells.map(q => q[1])) + 1];
+const rotCW = cells => { const [H] = dims(cells); return cells.map(([r, c]) => [c, H - 1 - r]); };
+const rotCCW = cells => { const [, W] = dims(cells); return cells.map(([r, c]) => [W - 1 - c, r]); };
+const flipH = cells => { const [, W] = dims(cells); return cells.map(([r, c]) => [r, W - 1 - c]); };
+const playDates = () => [monthCell(state.m), dayCell(state.d)];
+const gapOf = cs => Math.max(1, Math.round(cs * 0.07));
+function playReset() {
+  P.id = `${state.shape}:${state.m}-${state.d}`;
+  P.pieces = S[state.shape].pieces.map(p => ({ cells: p.shape.map(q => [...q]), at: null }));
+  P.sel = null;
+}
+// The board cells piece p would cover at `at`, or null if any would be off the board, on the date or on another piece.
+function fits(p, cells, at) {
+  const s = S[state.shape], dc = playDates(), taken = new Set();
+  P.pieces.forEach((q, j) => { if (j !== p && q.at) for (const [r, c] of q.cells) taken.add(s.at[(q.at[0] + r) * 7 + q.at[1] + c]); });
+  const out = [];
+  for (const [r, c] of cells) {
+    const R = at[0] + r, Cc = at[1] + c;
+    if (R < 0 || Cc < 0 || R > 6 || Cc > 6) return null;
+    const i = s.at[R * 7 + Cc];
+    if (i === undefined || dc.includes(i) || taken.has(i)) return null;
+    out.push(i);
+  }
+  return out;
+}
+// The closest spot to `base` where the piece fits, or null.
+function nearestFit(p, cells, [r0, c0]) {
+  let best = null, bd = Infinity;
+  for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+    const dd = dr * dr + dc * dc;
+    if (dd < bd && fits(p, cells, [r0 + dr, c0 + dc])) { best = [r0 + dr, c0 + dc]; bd = dd; }
+  }
+  return best;
+}
+// One path per piece, joined across its own cells the same way drawBoard joins them.
+function piecePath(cells, cs, ox = 0, oy = 0) {
+  const g = gapOf(cs), has = new Set(cells.map(([r, c]) => r * 8 + c));
+  const rect = (x, y, w, h) => `M${x} ${y}h${w}v${h}h${-w}z`;
+  let d = '';
+  for (const [r, c] of cells) {
+    const x = ox + c * cs, y = oy + r * cs;
+    const R = has.has(r * 8 + c + 1), B = has.has((r + 1) * 8 + c);
+    d += rect(x + g, y + g, cs - 2 * g, cs - 2 * g);
+    if (R) d += rect(x + cs - g, y + g, 2 * g, cs - 2 * g);
+    if (B) d += rect(x + g, y + cs - g, cs - 2 * g, 2 * g);
+    if (R && B && has.has((r + 1) * 8 + c + 1)) d += rect(x + cs - g, y + cs - g, 2 * g, 2 * g);
+  }
+  return d;
+}
+const pieceSvgPath = (p, cs, ox, oy, extra = '') =>
+  `<path data-pp="${p}" d="${piecePath(P.pieces[p].cells, cs, ox, oy)}" fill="${pieceColor(state.shape, p)}"${P.sel === p ? ' filter="url(#play-sel)"' : ''}${extra}/>`;
+const playSolved = () => P.pieces.every(q => q.at);
+
+function renderPlay() {
+  const k = state.shape, s = S[k], { m, d } = state;
+  if (P.drag) cancelDrag(false);
+  if (P.id !== `${k}:${m}-${d}`) playReset();
+  const n = s.counts[key(m, d)];
+  document.getElementById('play-title').textContent = `${MONTHS[m - 1]} ${d}`;
+  document.getElementById('play-count').innerHTML = `<b class="num">${fmt(n)}</b> ${n === 1 ? 'solution' : 'solutions'} to find` +
+    (valid(m, d) ? '' : ` <span class="pill">Not a real date</span>`);
+  // Phones: the board fills the column and the tray fits four pieces a row.
+  const col = document.getElementById('view-play').clientWidth;
+  P.cs = narrow.matches ? Math.max(30, Math.min(56, Math.floor((col - 8) / 7))) : 56;
+  P.tcs = narrow.matches ? Math.max(12, Math.min(28, Math.floor((col - 82) / 16))) : 28;
+  drawPlayBoard(); drawTray(); playStatus();
+}
+function drawPlayBoard() {
+  const s = S[state.shape], cs = P.cs, g = gapOf(cs), dc = playDates(), solved = playSolved();
+  const lw = Math.max(1.5, cs * 0.07), pad = P.pad = Math.ceil(lw) + 1, W = 7 * cs + 2 * pad;
+  const svg = document.getElementById('play-board');
+  svg.setAttribute('width', W); svg.setAttribute('height', W); svg.setAttribute('viewBox', `0 0 ${W} ${W}`);
+  const cellAt = (r, c) => (r < 0 || c < 0 || r > 6 || c > 6) ? undefined : s.at[r * 7 + c];
+  let edge = '', cells = '', labels = '';
+  const fs = Math.max(7, Math.round(cs * 0.34));
+  s.cells.forEach(([r, c], i) => {
+    const x = c * cs, y = r * cs;
+    if (cellAt(r - 1, c) === undefined) edge += `M${x} ${y}h${cs}`;
+    if (cellAt(r + 1, c) === undefined) edge += `M${x} ${y + cs}h${cs}`;
+    if (cellAt(r, c - 1) === undefined) edge += `M${x} ${y}v${cs}`;
+    if (cellAt(r, c + 1) === undefined) edge += `M${x + cs} ${y}v${cs}`;
+    const isDate = dc.includes(i);
+    if (!isDate) cells += `<rect x="${x + g}" y="${y + g}" width="${cs - 2 * g}" height="${cs - 2 * g}" rx="${Math.max(1, cs * 0.12)}" fill="${C.cell}"/>`;
+    labels += `<text x="${x + cs / 2}" y="${y + cs / 2 + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="${isDate ? 600 : 400}" fill="${isDate ? C.ink : C.muted}">${s.labels[i]}</text>`;
+  });
+  const pieces = P.pieces.map((q, p) => q.at ? pieceSvgPath(p, cs, q.at[1] * cs, q.at[0] * cs) : '').join('');
+  svg.innerHTML =
+    `<defs><filter id="play-sel" x="-20%" y="-20%" width="140%" height="140%">
+       <feMorphology in="SourceAlpha" operator="dilate" radius="2.5" result="d"/><feFlood flood-color="${C.ink}"/>
+       <feComposite in2="d" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` +
+    `<g transform="translate(${pad},${pad})">` +
+    `<path d="${edge}" fill="none" stroke="${solved ? C.s1 : C.muted}" stroke-width="${lw}" stroke-linecap="square"/>` +
+    cells + labels + pieces + `<g id="play-ghost"></g></g>`;
+}
+function drawTray() {
+  const tcs = P.tcs, tray = document.getElementById('tray');
+  tray.style.setProperty('--slot', 4 * tcs + 8 + 'px');
+  tray.innerHTML = P.pieces.map((q, p) => {
+    if (q.at) return '<div class="slot"></div>';
+    const [H, W] = dims(q.cells);
+    return `<div class="slot"><svg width="${W * tcs}" height="${H * tcs}" viewBox="0 0 ${W * tcs} ${H * tcs}" data-pp="${p}" role="img" aria-label="Piece ${S[state.shape].pieces[p].name}">${pieceSvgPath(p, tcs, 0, 0)}</svg></div>`;
+  }).join('');
+  const sel = P.sel !== null;
+  ['play-ccw', 'play-cw', 'play-flip'].forEach(id => document.getElementById(id).disabled = !sel);
+  document.getElementById('play-clear').disabled = !P.pieces.some(q => q.at);
+}
+function playStatus() {
+  const k = state.shape, s = S[k], { m, d } = state, dc = playDates(), el = document.getElementById('play-status');
+  const placed = P.pieces.filter(q => q.at).length;
+  if (!playSolved()) {
+    el.innerHTML = `Cover every cell except <b>${s.labels[dc[0]]}</b> and <b>${s.labels[dc[1]]}</b>. <span class="num">${placed}</span> of ${P.pieces.length} pieces placed.`;
+    return;
+  }
+  const sol = Array(s.cells.length).fill('.');
+  P.pieces.forEach((q, p) => q.cells.forEach(([r, c]) => { sol[s.at[(q.at[0] + r) * 7 + q.at[1] + c]] = String(p); }));
+  const i = sortedSolutions(k, m, d).indexOf(sol.join(''));
+  el.innerHTML = `<b>Solved!</b> ${i >= 0 ? `That's solution <b>#${fmt(i + 1)}</b> of ${fmt(s.counts[key(m, d)])}. ` : ''}` +
+    `<button class="link" id="play-show">See it in Solutions</button>`;
+  document.getElementById('play-show').onclick = () => {
+    state.view = 'solutions';
+    findFor = `${k}:${m}-${d}`;
+    state.picks = sol.map((x, j) => [j, x]).filter(([, x]) => x !== '.');
+    try { history.replaceState(null, '', '#solutions'); } catch (err) {}
+    render(); window.scrollTo(0, 0);
+  };
+}
+
+// Rotate or flip piece p. Mid-drag, the grabbed point stays under the pointer; on the board, the piece
+// turns about its middle and shifts to the nearest spot it fits, or goes back to the tray if there's none.
+function turn(p, how) {
+  const q = P.pieces[p], [H, W] = dims(q.cells);
+  const next = how === 'cw' ? rotCW(q.cells) : how === 'ccw' ? rotCCW(q.cells) : flipH(q.cells);
+  const D = P.drag;
+  if (D && D.moved && D.p === p) {
+    [D.gy, D.gx] = how === 'cw' ? [D.gx, H - D.gy] : how === 'ccw' ? [W - D.gx, D.gy] : [D.gy, W - D.gx];
+    q.cells = next; drawFloat(); moveFloat();
+    return;
+  }
+  q.cells = next;
+  if (q.at) {
+    const [h2, w2] = dims(next);
+    q.at = nearestFit(p, next, [Math.round(q.at[0] + (H - h2) / 2), Math.round(q.at[1] + (W - w2) / 2)]);
+  }
+  renderPlay();
+}
+function drawFloat() {
+  const D = P.drag, q = P.pieces[D.p], [H, W] = dims(q.cells), cs = P.cs;
+  D.float.setAttribute('width', W * cs); D.float.setAttribute('height', H * cs);
+  D.float.setAttribute('viewBox', `0 0 ${W * cs} ${H * cs}`);
+  D.float.innerHTML = `<path d="${piecePath(q.cells, cs)}" fill="${pieceColor(state.shape, D.p)}"/>`;
+}
+// Move the floating piece with the pointer and preview where it would snap on the board.
+function moveFloat() {
+  const D = P.drag, q = P.pieces[D.p], cs = P.cs;
+  const fx = D.cx - D.gx * cs, fy = D.cy - D.gy * cs;
+  D.float.style.transform = `translate(${fx}px, ${fy}px)`;
+  const r = document.getElementById('play-board').getBoundingClientRect();
+  D.over = D.cx >= r.left && D.cx <= r.right && D.cy >= r.top && D.cy <= r.bottom;
+  const at = [Math.round((fy - r.top - P.pad) / cs), Math.round((fx - r.left - P.pad) / cs)];
+  D.target = fits(D.p, q.cells, at) ? at : null;
+  document.getElementById('play-ghost').innerHTML = D.target
+    ? `<path d="${piecePath(q.cells, cs, at[1] * cs, at[0] * cs)}" fill="${pieceColor(state.shape, D.p)}" opacity=".4"/>` : '';
+}
+function cancelDrag(redraw = true) {
+  const D = P.drag; if (!D) return;
+  if (D.float) D.float.remove();
+  document.documentElement.classList.remove('dragging');
+  P.drag = null;
+  if (redraw) renderPlay();
+}
+function pressPiece(e, gy, gx) {
+  const t = e.target.closest('[data-pp]');
+  P.drag = { p: +t.dataset.pp, el: t, gy, gx, x0: e.clientX, y0: e.clientY, cx: e.clientX, cy: e.clientY, id: e.pointerId, moved: false };
+  e.currentTarget.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+const playBoard = document.getElementById('play-board'), trayEl = document.getElementById('tray');
+playBoard.addEventListener('pointerdown', e => {
+  if (P.drag || e.button > 0) return;
+  const t = e.target.closest('[data-pp]');
+  if (!t) { if (P.sel !== null) { P.sel = null; renderPlay(); } return; }
+  const q = P.pieces[+t.dataset.pp], r = playBoard.getBoundingClientRect();
+  pressPiece(e, (e.clientY - r.top - P.pad) / P.cs - q.at[0], (e.clientX - r.left - P.pad) / P.cs - q.at[1]);
+});
+trayEl.addEventListener('pointerdown', e => {
+  if (P.drag || e.button > 0) return;
+  const t = e.target.closest('[data-pp]'); if (!t) return;
+  const r = t.getBoundingClientRect();
+  pressPiece(e, (e.clientY - r.top) / P.tcs, (e.clientX - r.left) / P.tcs);
+});
+function onPlayMove(e) {
+  const D = P.drag; if (!D || e.pointerId !== D.id) return;
+  D.cx = e.clientX; D.cy = e.clientY;
+  if (!D.moved) {
+    if (Math.hypot(D.cx - D.x0, D.cy - D.y0) < 5) return;
+    D.moved = true;
+    D.el.style.visibility = 'hidden';
+    D.float = document.createElementNS(SVGNS, 'svg');
+    D.float.setAttribute('class', 'drag-float');
+    document.body.append(D.float);
+    document.documentElement.classList.add('dragging');
+    drawFloat();
+  }
+  moveFloat();
+}
+function onPlayUp(e) {
+  const D = P.drag; if (!D || e.pointerId !== D.id) return;
+  const q = P.pieces[D.p];
+  if (!D.moved) {
+    // A tap selects a piece; tapping the selected piece again rotates it.
+    P.drag = null;
+    if (P.sel === D.p) turn(D.p, 'cw');
+    else { P.sel = D.p; renderPlay(); }
+    return;
+  } else {
+    P.sel = D.p;
+    // Dropped where it fits: place it. Dropped on the board where it doesn't: back where it was, if it
+    // still fits there. Dropped off the board: back to the tray.
+    if (D.target) q.at = D.target;
+    else if (!(D.over && q.at && fits(D.p, q.cells, q.at))) q.at = null;
+  }
+  cancelDrag();
+}
+for (const el of [playBoard, trayEl]) {
+  el.addEventListener('pointermove', onPlayMove);
+  el.addEventListener('pointerup', onPlayUp);
+  el.addEventListener('pointercancel', e => { if (P.drag && e.pointerId === P.drag.id) cancelDrag(); });
+}
+document.getElementById('play-cw').onclick = () => { if (P.sel !== null) turn(P.sel, 'cw'); };
+document.getElementById('play-ccw').onclick = () => { if (P.sel !== null) turn(P.sel, 'ccw'); };
+document.getElementById('play-flip').onclick = () => { if (P.sel !== null) turn(P.sel, 'flip'); };
+document.getElementById('play-clear').onclick = () => { P.pieces.forEach(q => { q.at = null; }); P.sel = null; renderPlay(); };
+document.addEventListener('keydown', e => {
+  if (state.view !== 'play' || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('select, input, textarea')) return;
+  if (e.key === 'Escape') { if (P.drag) cancelDrag(); else if (P.sel !== null) { P.sel = null; renderPlay(); } return; }
+  const p = P.drag && P.drag.moved ? P.drag.p : P.sel;
+  if (p === null) return;
+  const k = e.key.toLowerCase();
+  if (k === 'r') turn(p, e.shiftKey ? 'ccw' : 'cw');
+  else if (k === 'f') turn(p, 'flip');
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && !P.drag && P.pieces[p].at) { P.pieces[p].at = null; renderPlay(); }
+  else return;
+  e.preventDefault();
+});
+let playResize = 0;
+addEventListener('resize', () => {
+  if (state.view !== 'play' || !narrow.matches || P.drag) return;
+  cancelAnimationFrame(playResize); playResize = requestAnimationFrame(renderPlay);
+});
+
 /* ---------- stats ---------- */
 function computeStats(k) {
   const s = S[k];
@@ -862,8 +1158,8 @@ function renderStats() {
     ['Solutions in a year', fmt(s.total), ''],
     ['Mean solutions per date', fmt(Math.floor(s.mean)), ''],
     ['Median solutions per date', fmt(s.median), ''],
-    ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
     ['Easiest date', hi.n, highs.map(x => go(x.m, x.d)).join(', ')],
+    ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
   ].map(([k1, v, sub]) => `<div class="tile"><div class="k">${k1}</div><div class="v num">${v}</div><div class="s">${sub}</div></div>`).join('');
 
   calendarHeatmap(k);
@@ -1188,10 +1484,15 @@ function syncControls() {
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === state.view));
   document.getElementById('view-solutions').hidden = state.view !== 'solutions';
   document.getElementById('view-stats').hidden = state.view !== 'stats';
+  document.getElementById('view-play').hidden = state.view !== 'play';
 }
+// Play and Solutions share one date picker, moved into whichever of them is showing.
+const dateCtl = document.querySelector('.date-ctl');
 function render() {
   syncControls();
-  if (state.view === 'solutions') renderSolutions(); else renderStats();
+  if (state.view === 'play') { document.getElementById('play-date-slot').prepend(dateCtl); renderPlay(); }
+  else if (state.view === 'solutions') { document.querySelector('#view-solutions .day-title').prepend(dateCtl); renderSolutions(); }
+  else renderStats();
 }
 monthSel.onchange = () => { state.m = +monthSel.value; render(); };
 daySel.onchange = () => { state.d = +daySel.value; render(); };
@@ -1201,12 +1502,12 @@ function shiftDay(delta) {
   const dt = new Date(t);
   if (dt.getUTCFullYear() !== 2024) t = Date.UTC(2024, delta > 0 ? 0 : 11, delta > 0 ? 1 : 31);
   const n = new Date(t); state.m = n.getUTCMonth() + 1; state.d = n.getUTCDate();
-  if (state.view !== 'solutions') state.view = 'solutions';
+  if (state.view === 'stats') state.view = 'solutions';
   render();
 }
 document.getElementById('prev-day').onclick = () => shiftDay(-1);
 document.getElementById('next-day').onclick = () => shiftDay(1);
-document.getElementById('today').onclick = () => { const t = new Date(); state.m = t.getMonth() + 1; state.d = t.getDate(); state.view = 'solutions'; render(); };
+document.getElementById('today').onclick = () => { const t = new Date(); state.m = t.getMonth() + 1; state.d = t.getDate(); if (state.view === 'stats') state.view = 'solutions'; render(); };
 document.getElementById('shape-seg').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   state.shape = b.dataset.shape; save(); render();
@@ -1214,7 +1515,7 @@ document.getElementById('shape-seg').onclick = e => {
 document.querySelector('.tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   state.view = b.dataset.view;
-  try { history.replaceState(null, '', state.view === 'stats' ? '#stats' : '#solutions'); } catch (err) {}
+  try { history.replaceState(null, '', '#' + state.view); } catch (err) {}
   render(); window.scrollTo(0, 0);
 };
 document.addEventListener('click', e => {

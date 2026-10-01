@@ -43,6 +43,9 @@ done until it looks good on both.
 - It is about **the selected shape**. The title is "Statistics of Shape 1" / "Statistics of
   Shape 2". Summary boxes show only the selected shape — no "other shape" subtext, no
   shape-vs-shape boxes.
+- **Easier before harder**, everywhere stats are listed: easiest tile before hardest, the
+  "Most solutions" table before "Fewest", easiest finds before hardest. (Numeric axes and colour
+  ramps still run low to high.)
 - "Interesting finds" is also selected-shape only: easiest/hardest month, date number and
   combination (any two open cells, ignoring unsolvable pairs). No subheading.
 - Every chart shows the selected shape only (board cells, months, days, etc.); captions don't name
