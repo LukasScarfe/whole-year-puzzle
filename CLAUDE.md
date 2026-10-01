@@ -95,7 +95,7 @@ Only when asked: push, and update the artifact.
 ## Publishing
 
 1. Push `main` to `origin` (`git@github.com:LukasScarfe/whole-year-puzzle.git`); GitHub Pages
-   serves `docs/` at **https://world-puzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
+   serves `docs/` at **https://year-puzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
    CNAME to `lukasscarfe.github.io`). Share links and preview-image URLs use that domain too, so
    change them together if it ever moves.
 2. The claude.ai artifact copy (https://claude.ai/artifact/EiKD4Np4vjD84K7PY8DtFw) is updated
