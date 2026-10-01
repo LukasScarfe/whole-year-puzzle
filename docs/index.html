@@ -320,6 +320,9 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
   padding: 6px 9px; border-radius: 6px; font-size: 13px; line-height: 1.35; max-width: 260px;
   box-shadow: 0 4px 14px rgba(0,0,0,.2);
 }
+/* The tooltip sits on var(--ink); its bold text must follow the tooltip colour, not the page's
+   --bold (which is white in dark mode and would vanish on the white tooltip). */
+#tip b, #tip strong { color: inherit; }
 footer.src { margin-top: 40px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
 footer.src p { margin: 0; }
 footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
