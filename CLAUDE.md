@@ -34,7 +34,7 @@ done until it looks good on both.
   names come from `name` in `solve.py` (and so `data.js`).
 - **Dates:** short month + day, e.g. "Jan 25".
 - **Numbers:** whole numbers (floor/round) everywhere, except where a fraction is the point, like
-  a ratio ("31×"). Thousands separators via `fmt()`.
+  a ratio. Thousands separators via `fmt()`.
 - **Copy:** brief captions — one sentence under each chart saying what it shows and how to read it.
   No intro paragraphs.
 
