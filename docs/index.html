@@ -24,6 +24,7 @@
   --s1: #a58ebe;        /* lavender, primary-400 */
   --tab-on: #316833;    /* selected toggle, neutral-600: lighter than its track, so it reads as raised */
   --fade: #262626;      /* Blowfish neutral-800: consensus cells fade toward this, not the green ground */
+  --none: #000000;      /* hole pairs with no solutions, black in both themes */
   --dark: 1;
   --ctl: 36px;
   --gap: 12px;
@@ -51,6 +52,7 @@
   --s1: #207e84;        /* teal */
   --tab-on: #f3eded;
   --fade: #f3eded;
+  --none: #000000;
   --dark: 0;
 }
 
@@ -476,7 +478,7 @@ function readColors() {
   const g = n => cs.getPropertyValue(n).trim();
   C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
         line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
-        hatch: g('--hatch'), s1: g('--s1'), fade: g('--fade'), dark: g('--dark') === '1' };
+        hatch: g('--hatch'), s1: g('--s1'), fade: g('--fade'), none: g('--none'), dark: g('--dark') === '1' };
 }
 /* Piece colours are keyed by piece name, so a piece looks the same on both shapes and in both themes.
    Pieces only one shape has share a colour slot with a similar piece on the other (O/R, S/N, T/Y, l/V). */
@@ -908,7 +910,7 @@ function pairMatrix(k) {
   // Lower triangle: row = later cell, column = earlier cell.
   for (let b = 1; b < n; b++) for (let a = 0; a < b; a++) {
     const v = pi.get(a, b), isDate = (a < 12) !== (b < 12);
-    const fill = v ? seq(scaleLogT(v, lo, mid, hi)) : C.bg;  // no solutions: left as the page ground
+    const fill = v ? seq(scaleLogT(v, lo, mid, hi)) : C.none;
     out += `<rect x="${L + a * cs + 0.5}" y="${T + b * cs + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5" fill="${fill}"
       data-tip="<b>${s.labels[a]} + ${s.labels[b]}</b> open: ${fmt(v)} solutions${isDate ? '' : '<br>not a calendar date'}"
       ${isDate && valid(a + 1, b - 11) ? `data-go="${a + 1}-${b - 11}" style="cursor:pointer"` : ''}/>`;
@@ -923,7 +925,7 @@ function pairMatrix(k) {
   }
   out += `<text x="${L + 12 * cs + 6}" y="${T + 12 * cs - 4}" font-size="12" fill="${C.ink}">↙ outlined: month + day (the date settings)</text>`;
   document.getElementById('pairs').innerHTML = out + '</svg>';
-  rampLegend(document.getElementById('pairs-ramp'), lo, hi, 'solutions, log scale · blank = none', mid, true);
+  rampLegend(document.getElementById('pairs-ramp'), lo, hi, 'solutions, log scale · black = none', mid, true);
   document.getElementById('pairs-sub').textContent =
     `The board can be tiled with any two cells left open, including two months or two days. Each square is one pair; ` +
     `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
