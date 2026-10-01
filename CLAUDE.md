@@ -90,18 +90,14 @@ Port 8798 is FreshRSS — don't use it.
 Without asking: edit → restart preview → **commit to `main` locally**. Keep
 `README.md` (feature list, results table) in sync in the same commit.
 
-Only when asked: push, and update the artifact.
+Only when asked: push. No claude.ai artifacts — the user doesn't want them.
 
 ## Publishing
 
-1. Push `main` to `origin` (`git@github.com:LukasScarfe/whole-year-puzzle.git`); GitHub Pages
-   serves `docs/` at **https://year-puzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
-   CNAME to `lukasscarfe.github.io`). Share links and preview-image URLs use that domain too, so
-   change them together if it ever moves.
-2. The claude.ai artifact copy (https://claude.ai/artifact/EiKD4Np4vjD84K7PY8DtFw) is updated
-   separately: publish `docs/index.html` without its first two lines (`<!doctype html>`, `<html>`)
-   with `url` set to the artifact and `files` for `data.js`, `favicon-32x32.png`,
-   `logo-dark.png`, `logo-light.png`.
+Push `main` to `origin` (`git@github.com:LukasScarfe/whole-year-puzzle.git`); GitHub Pages
+serves `docs/` at **https://year-puzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
+CNAME to `lukasscarfe.github.io`). Share links and preview-image URLs use that domain too, so
+change them together if it ever moves.
 
 If `solve.py` changes, regenerate with `python3 solve.py` and check with `python3 verify.py` before
 publishing.
