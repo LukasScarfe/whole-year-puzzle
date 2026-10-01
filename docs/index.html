@@ -4,6 +4,12 @@
 <title>The Whole Year Puzzle Solutions</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<meta property="og:title" content="The Whole Year Puzzle Solutions">
+<meta property="og:description" content="Play the Whole Year Puzzle for any date, see every solution, and explore the statistics.">
+<meta property="og:image" content="https://lukasscarfe.github.io/whole-year-puzzle/og-shape2.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root {
   /* Colours from lukasscarfe.com (Blowfish theme). Dark green is the default, like the site. */
@@ -257,6 +263,15 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 .tray svg { display: block; overflow: visible; touch-action: none; user-select: none; -webkit-user-select: none; }
 .play-hint { margin: 0; font-size: 13px; color: var(--muted); }
 .drag-float { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; overflow: visible; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .35)); }
+#win { text-align: center; width: min(360px, calc(100vw - 32px)); padding: 28px 24px 24px; position: relative; }
+#win h2 { font-size: 34px; font-weight: 800; line-height: 1.1; }
+#win p { margin: 10px 0 20px; font-size: 18px; color: var(--ink-2); }
+#win p b { color: var(--ink); }
+#win #win-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; }
+.win-actions { display: grid; gap: 8px; }
+.text-btn.primary { background: var(--date); color: var(--date-ink); border-color: var(--date); font-weight: 600; }
+#confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; border: 0; background: transparent; pointer-events: none; overflow: hidden; }
+:root.og body { margin: 0; padding: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; }
 :root.dragging, :root.dragging * { cursor: grabbing !important; }
 @media (max-width: 760px) { .play { grid-template-columns: minmax(0, 1fr); } }
 
@@ -321,11 +336,12 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
         <div class="play-tools">
           <button class="text-btn" id="play-ccw">&#8634; Rotate left</button>
           <button class="text-btn" id="play-cw">&#8635; Rotate right</button>
-          <button class="text-btn" id="play-flip">&#8644; Flip</button>
+          <button class="text-btn" id="play-flip">&#8644; Flip horizontal</button>
+          <button class="text-btn" id="play-flipv">&#8645; Flip vertical</button>
           <button class="text-btn" id="play-clear">Clear board</button>
         </div>
         <div class="tray" id="tray"></div>
-        <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: R rotate, Shift+R rotate back, F flip, Delete returns it to the tray.</p>
+        <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: R rotate, Shift+R rotate back, F flip horizontal, V flip vertical, Delete returns it to the tray.</p>
       </div>
     </div>
   </div>
@@ -473,6 +489,16 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
   </div>
   <canvas id="dlg-canvas"></canvas>
 </dialog>
+<dialog id="win" aria-labelledby="win-title">
+  <button class="icon-btn" id="win-close" aria-label="Close">&#10005;</button>
+  <h2 id="win-title">Solved!</h2>
+  <p id="win-line"></p>
+  <div class="win-actions">
+    <button class="text-btn" id="win-show">See it in Solutions</button>
+    <button class="text-btn primary" id="win-share" autofocus>Share!</button>
+  </div>
+</dialog>
+<canvas id="confetti" popover="manual" aria-hidden="true"></canvas>
 <div id="tip" hidden></div>
 
 <script src="data.js"></script>
@@ -513,6 +539,8 @@ const dayCell = d => 11 + d;
 
 /* ---------- theme-aware colours ---------- */
 let C = {};
+// ?og=shape1 / ?og=shape2: just the empty board, for rendering the link-preview images (see CLAUDE.md).
+const OG = new URLSearchParams(location.search).get('og');
 function readColors() {
   const cs = getComputedStyle(document.documentElement);
   const g = n => cs.getPropertyValue(n).trim();
@@ -554,6 +582,14 @@ function seqText(t) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.28 ? '#15171a' : '#ffffff';
 }
 
+if (SHAPES.includes(OG)) {
+  document.documentElement.classList.add('og');
+  document.body.innerHTML = '<canvas id="og"></canvas>';
+  readColors();
+  drawBoard(document.getElementById('og'), OG, { cs: 78, texts: S[OG].labels });
+  return;
+}
+
 /* ---------- state ---------- */
 const now = new Date();
 const state = { view: 'solutions', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [] };
@@ -561,8 +597,17 @@ try {
   const saved = JSON.parse(localStorage.getItem('wya-state') || '{}');
   if (SHAPES.includes(saved.shape)) state.shape = saved.shape;
 } catch (e) {}
-if (location.hash === '#stats') state.view = 'stats';
-if (location.hash === '#play') state.view = 'play';
+// Links: #play, #stats, #solutions, optionally /shape/month-day and, for Solutions, /solution number.
+let sharedSol = null;
+function applyHash() {
+  const [view, shape, date, num] = decodeURIComponent(location.hash.slice(1)).split('/');
+  if (['play', 'solutions', 'stats'].includes(view)) state.view = view;
+  if (SHAPES.includes(shape)) state.shape = shape;
+  const [m, d] = (date || '').split('-').map(Number);
+  if (m >= 1 && m <= 12 && d >= 1 && d <= 31) { state.m = m; state.d = d; }
+  sharedSol = view === 'solutions' && num > 0 ? +num : null;
+}
+applyHash();
 function save() { try { localStorage.setItem('wya-state', JSON.stringify({ shape: state.shape })); } catch (e) {} }
 
 /* ---------- board drawing ---------- */
@@ -842,6 +887,7 @@ const dims = cells => [Math.max(...cells.map(q => q[0])) + 1, Math.max(...cells.
 const rotCW = cells => { const [H] = dims(cells); return cells.map(([r, c]) => [c, H - 1 - r]); };
 const rotCCW = cells => { const [, W] = dims(cells); return cells.map(([r, c]) => [W - 1 - c, r]); };
 const flipH = cells => { const [, W] = dims(cells); return cells.map(([r, c]) => [r, W - 1 - c]); };
+const flipV = cells => { const [H] = dims(cells); return cells.map(([r, c]) => [H - 1 - r, c]); };
 const playDates = () => [monthCell(state.m), dayCell(state.d)];
 const gapOf = cs => Math.max(1, Math.round(cs * 0.07));
 function playReset() {
@@ -895,6 +941,7 @@ function renderPlay() {
   const k = state.shape, s = S[k], { m, d } = state;
   if (P.drag) cancelDrag(false);
   if (P.id !== `${k}:${m}-${d}`) playReset();
+  if (playSolved()) P.sel = null;
   const n = s.counts[key(m, d)];
   document.getElementById('play-title').textContent = `${MONTHS[m - 1]} ${d}`;
   document.getElementById('play-count').innerHTML = `<b class="num">${fmt(n)}</b> ${n === 1 ? 'solution' : 'solutions'} to find` +
@@ -941,38 +988,108 @@ function drawTray() {
     return `<div class="slot"><svg width="${W * tcs}" height="${H * tcs}" viewBox="0 0 ${W * tcs} ${H * tcs}" data-pp="${p}" role="img" aria-label="Piece ${S[state.shape].pieces[p].name}">${pieceSvgPath(p, tcs, 0, 0)}</svg></div>`;
   }).join('');
   const sel = P.sel !== null;
-  ['play-ccw', 'play-cw', 'play-flip'].forEach(id => document.getElementById(id).disabled = !sel);
+  ['play-ccw', 'play-cw', 'play-flip', 'play-flipv'].forEach(id => document.getElementById(id).disabled = !sel);
   document.getElementById('play-clear').disabled = !P.pieces.some(q => q.at);
 }
 function playStatus() {
   const k = state.shape, s = S[k], { m, d } = state, dc = playDates(), el = document.getElementById('play-status');
   const placed = P.pieces.filter(q => q.at).length;
   if (!playSolved()) {
+    P.won = false;
     el.innerHTML = `Cover every cell except <b>${s.labels[dc[0]]}</b> and <b>${s.labels[dc[1]]}</b>. <span class="num">${placed}</span> of ${P.pieces.length} pieces placed.`;
     return;
   }
   const sol = Array(s.cells.length).fill('.');
   P.pieces.forEach((q, p) => q.cells.forEach(([r, c]) => { sol[s.at[(q.at[0] + r) * 7 + q.at[1] + c]] = String(p); }));
-  const i = sortedSolutions(k, m, d).indexOf(sol.join(''));
-  el.innerHTML = `<b>Solved!</b> ${i >= 0 ? `That's solution <b>#${fmt(i + 1)}</b> of ${fmt(s.counts[key(m, d)])}. ` : ''}` +
-    `<button class="link" id="play-show">See it in Solutions</button>`;
-  document.getElementById('play-show').onclick = () => {
-    state.view = 'solutions';
-    findFor = `${k}:${m}-${d}`;
-    state.picks = sol.map((x, j) => [j, x]).filter(([, x]) => x !== '.');
-    try { history.replaceState(null, '', '#solutions'); } catch (err) {}
-    render(); window.scrollTo(0, 0);
+  const num = sortedSolutions(k, m, d).indexOf(sol.join('')) + 1, total = s.counts[key(m, d)];
+  const line = `That's solution <b>#${fmt(num)}</b> of ${fmt(total)}.`;
+  el.innerHTML = `<b>Solved!</b> ${line} <button class="link" id="play-again">Show result</button>`;
+  P.result = { k, m, d, sol: sol.join(''), num, total };
+  document.getElementById('play-again').onclick = () => showWin(false);
+  // Celebrate once per solve, not on every redraw (theme switch, resize).
+  if (!P.won) { P.won = true; showWin(true); }
+}
+// Open Solutions on one solution: the finder narrowed to it, enlarged in the dialog.
+function showSolution(k, m, d, sol) {
+  Object.assign(state, { view: 'solutions', shape: k, m, d });
+  findFor = `${k}:${m}-${d}`;
+  state.picks = [...sol].map((x, j) => [j, x]).filter(([, x]) => x !== '.');
+  try { history.replaceState(null, '', '#solutions'); } catch (err) {}
+  render(); window.scrollTo(0, 0);
+  if (shown.length) showDialog(0);
+}
+
+const winDlg = document.getElementById('win');
+function showWin(party) {
+  const R = P.result;
+  document.getElementById('win-line').innerHTML = `That's solution <b class="num">#${fmt(R.num)}</b> of ${fmt(R.total)}.`;
+  document.getElementById('win-share').textContent = 'Share!';
+  if (!winDlg.open) winDlg.showModal();
+  if (party) confetti();
+}
+document.getElementById('win-close').onclick = () => winDlg.close();
+winDlg.addEventListener('click', e => { if (e.target === winDlg) winDlg.close(); });
+document.getElementById('win-show').onclick = () => {
+  const R = P.result; winDlg.close(); showSolution(R.k, R.m, R.d, R.sol);
+};
+// Links go to the public site. Each shape has its own entry page so a link preview shows that shape's
+// empty board, never the solution; it forwards to the main page with the shape filled in.
+const SITE = 'https://lukasscarfe.github.io/whole-year-puzzle/';
+document.getElementById('win-share').onclick = async () => {
+  const R = P.result, btn = document.getElementById('win-share');
+  const text = `I solved The Whole Year Puzzle (${SHAPE_LABEL[R.k]}) for ${dateName(R.m, R.d)}: solution #${fmt(R.num)} of ${fmt(R.total)}!\n\n` +
+    `🧩 Try it yourself (no spoilers):\n${SITE}${R.k}/#play/${R.m}-${R.d}\n\n` +
+    `👀 See my solution (spoiler!):\n${SITE}${R.k}/#solutions/${R.m}-${R.d}/${R.num}`;
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (err) { if (err.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied to clipboard!'; return; } catch (err) {}
+  // No clipboard API off https (e.g. the LAN preview): fall back to a hidden textarea and execCommand.
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  winDlg.append(ta); ta.select();
+  btn.textContent = document.execCommand('copy') ? 'Copied to clipboard!' : 'Couldn\'t copy';
+  ta.remove();
+};
+
+// A short burst of confetti in the piece colours, drawn above the popup (a popover sits in the top layer
+// too, opened after the dialog so it's on top). Skipped for anyone who prefers reduced motion.
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = document.getElementById('confetti');
+  if (cv.showPopover) { try { cv.hidePopover(); } catch (e) {} cv.showPopover(); }
+  const W = innerWidth, H = innerHeight, ctx = setupCanvas(cv, W, H);
+  const cols = S[state.shape].pieces.map((_, p) => pieceColor(state.shape, p));
+  const bits = Array.from({ length: 180 }, (_, i) => {
+    const left = i % 2 === 0, a = (left ? -60 : -120) * Math.PI / 180 + (Math.random() - 0.5) * 0.9, v = 9 + Math.random() * 9;
+    return { x: left ? 0 : W, y: H * 0.75, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+             w: 6 + Math.random() * 6, h: 4 + Math.random() * 4, c: cols[i % cols.length] };
+  });
+  const t0 = performance.now();
+  const frame = t => {
+    const age = (t - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = Math.max(0, Math.min(1, 3.5 - age));
+    for (const b of bits) {
+      b.vy += 0.28; b.vx *= 0.99; b.vy *= 0.99; b.x += b.vx; b.y += b.vy; b.r += b.vr;
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r); ctx.fillStyle = b.c;
+      ctx.fillRect(-b.w / 2, -b.h / 2 * Math.abs(Math.cos(b.r * 2)), b.w, b.h * Math.abs(Math.cos(b.r * 2)));
+      ctx.restore();
+    }
+    if (age < 3.5) requestAnimationFrame(frame);
+    else { ctx.clearRect(0, 0, W, H); if (cv.hidePopover) try { cv.hidePopover(); } catch (e) {} }
   };
+  requestAnimationFrame(frame);
 }
 
 // Rotate or flip piece p. Mid-drag, the grabbed point stays under the pointer; on the board, the piece
 // turns about its middle and shifts to the nearest spot it fits, or goes back to the tray if there's none.
 function turn(p, how) {
   const q = P.pieces[p], [H, W] = dims(q.cells);
-  const next = how === 'cw' ? rotCW(q.cells) : how === 'ccw' ? rotCCW(q.cells) : flipH(q.cells);
+  const next = { cw: rotCW, ccw: rotCCW, flip: flipH, flipv: flipV }[how](q.cells);
   const D = P.drag;
   if (D && D.moved && D.p === p) {
-    [D.gy, D.gx] = how === 'cw' ? [D.gx, H - D.gy] : how === 'ccw' ? [W - D.gx, D.gy] : [D.gy, W - D.gx];
+    [D.gy, D.gx] = { cw: [D.gx, H - D.gy], ccw: [W - D.gx, D.gy], flip: [D.gy, W - D.gx], flipv: [H - D.gy, D.gx] }[how];
     q.cells = next; drawFloat(); moveFloat();
     return;
   }
@@ -1069,6 +1186,7 @@ for (const el of [playBoard, trayEl]) {
 document.getElementById('play-cw').onclick = () => { if (P.sel !== null) turn(P.sel, 'cw'); };
 document.getElementById('play-ccw').onclick = () => { if (P.sel !== null) turn(P.sel, 'ccw'); };
 document.getElementById('play-flip').onclick = () => { if (P.sel !== null) turn(P.sel, 'flip'); };
+document.getElementById('play-flipv').onclick = () => { if (P.sel !== null) turn(P.sel, 'flipv'); };
 document.getElementById('play-clear').onclick = () => { P.pieces.forEach(q => { q.at = null; }); P.sel = null; renderPlay(); };
 document.addEventListener('keydown', e => {
   if (state.view !== 'play' || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('select, input, textarea')) return;
@@ -1078,6 +1196,7 @@ document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === 'r') turn(p, e.shiftKey ? 'ccw' : 'cw');
   else if (k === 'f') turn(p, 'flip');
+  else if (k === 'v') turn(p, 'flipv');
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !P.drag && P.pieces[p].at) { P.pieces[p].at = null; renderPlay(); }
   else return;
   e.preventDefault();
@@ -1566,6 +1685,15 @@ new MutationObserver(rethemed).observe(document.documentElement, { attributes: t
 
 readColors();
 render();
+// A shared solution link opens that solution; the address is then trimmed so a reload doesn't reopen it.
+function openShared() {
+  if (sharedSol === null) return;
+  const sol = sortedSolutions(state.shape, state.m, state.d)[sharedSol - 1];
+  sharedSol = null;
+  if (sol) showSolution(state.shape, state.m, state.d, sol);
+}
+openShared();
+addEventListener('hashchange', () => { applyHash(); render(); openShared(); });
 if (document.fonts) document.fonts.ready.then(() => { if (state.view === 'solutions') renderSolutions(); });
 })();
 </script>
