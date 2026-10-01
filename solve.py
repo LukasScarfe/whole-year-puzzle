@@ -23,7 +23,7 @@ MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 
 # They differ only in where days 29-31 sit on row 6.
 SHAPES = {
     'shape1': {
-        'name': 'Puzzle Shape 1',
+        'name': 'Shape 1',
         'row6_start': 2,
         # Alphabetical (L before l); the site shows pieces in this order and colours them by name.
         'pieces': {
@@ -39,7 +39,7 @@ SHAPES = {
         },
     },
     'shape2': {
-        'name': 'Puzzle Shape 2',
+        'name': 'Shape 2',
         'row6_start': 0,
         'pieces': {
             'L': [(0, 0), (1, 0), (1, 1), (1, 2), (1, 3)],
