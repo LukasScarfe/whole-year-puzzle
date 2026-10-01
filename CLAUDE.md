@@ -95,7 +95,7 @@ Only when asked: push. No claude.ai artifacts — the user doesn't want them.
 ## Publishing
 
 Push `main` to `origin` (`git@github.com:LukasScarfe/whole-year-puzzle.git`); GitHub Pages
-serves `docs/` at **https://year-puzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
+serves `docs/` at **https://yearpuzzle.michelleyap.ca/** (`docs/CNAME`; DNS is a Cloudflare
 CNAME to `lukasscarfe.github.io`). Share links and preview-image URLs use that domain too, so
 change them together if it ever moves.
 
