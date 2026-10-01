@@ -22,6 +22,8 @@
   --ring: rgba(255, 255, 255, 0.12);
   --focus: #a58ebe;     /* primary-400 */
   --s1: #a58ebe;        /* lavender, primary-400 */
+  --tab-on: #316833;    /* selected toggle, neutral-600: lighter than its track, so it reads as raised */
+  --fade: #262626;      /* Blowfish neutral-800: consensus cells fade toward this, not the green ground */
   --dark: 1;
   --ctl: 36px;
   --gap: 12px;
@@ -47,6 +49,8 @@
   --ring: rgba(22, 0, 0, 0.10);
   --focus: #207e84;
   --s1: #207e84;        /* teal */
+  --tab-on: #f3eded;
+  --fade: #f3eded;
   --dark: 0;
 }
 
@@ -89,7 +93,7 @@ button, select { font: inherit; color: inherit; }
 }
 .seg svg { display: block; flex: none; }
 .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] {
-  background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
+  background: var(--tab-on); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
 }
 /* Borderless icon button, as in the lukasscarfe.com header. */
 .theme-btn { grid-area: theme; width: var(--ctl); height: var(--ctl); border: 0; background: none; padding: 0; cursor: pointer; color: var(--ink-2); display: inline-grid; place-items: center; }
@@ -122,7 +126,12 @@ dialog .icon-btn { width: 32px; }
   .brand .me img { width: 32px; height: 32px; }
   .brand h1 { font-size: 19px; flex-basis: 100%; }
   .masthead { align-items: start; }
-  .nav { flex-direction: column; }
+  .nav { gap: 8px; }
+  .tabs button, .seg button { padding: 0 6px; font-size: 13px; }
+  .seg svg { display: none; }
+  .masthead-bar { padding-block: 10px; }
+  .masthead { row-gap: 8px; }
+  .boardcard .cap { max-width: none; }
   /* Five controls share the row exactly: the dropdowns take what the buttons leave. */
   .date-ctl { display: grid; grid-template-columns: var(--ctl) minmax(0, 3fr) minmax(0, 2fr) var(--ctl) auto; }
   .date-ctl select { width: 100%; min-width: 0; }
@@ -203,9 +212,9 @@ svg text { font-family: var(--font-body); }
 .keys i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .ramp { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .ramp .bar { width: 120px; height: 10px; border-radius: 3px; position: relative; }
-.ramp .tick { position: absolute; top: 0; height: 10px; width: 1px; background: var(--ink); opacity: .55; }
-.ramp .tick span { position: absolute; top: 12px; left: 0; transform: translateX(-50%); font-size: 10px; line-height: 1; color: var(--muted); }
-.ramp.has-ticks { padding-bottom: 12px; }
+.ramp .tick { position: absolute; top: 0; height: 10px; width: 1px; background: var(--ink); opacity: .55; font-style: normal; }
+.ramp .tick span { position: absolute; top: 12px; left: 0; transform: translateX(-50%); font-size: 11px; line-height: 1; color: var(--ink); }
+.ramp.has-ticks { padding-bottom: 13px; }
 
 .insights { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
 .insight { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
@@ -338,14 +347,15 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
     <section class="chart">
       <header>
-        <div><h3>Where the date sits on the board</h3><p>Average solutions when a given cell is left uncovered, across all real dates that use it. Cells near the edges or corners are easier to leave open than cells in the middle.</p></div>
+        <div><h3>Where the date sits on the board</h3><p>Average solutions when a given cell is left uncovered, across all real dates that use it. Corner cells are usually the easiest to leave open.</p></div>
+        <div class="ramp" id="cell-ramp"></div>
       </header>
       <div id="cell-effect"></div>
     </section>
 
     <section class="chart">
       <header>
-        <div><h3>Months, most to least generous</h3><p>Average solutions per date in each month (real dates only).</p></div>
+        <div><h3>Month by month</h3><p>Average solutions per date in each month (real dates only).</p></div>
       </header>
       <div class="fit" id="months"></div>
     </section>
@@ -373,6 +383,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     <section class="chart">
       <header><div><h3>Where each piece likes to sit</h3><p>Share of all solutions (real dates) in which the piece covers each cell, and how often each rotation or flip of it is used.</p></div></header>
       <div class="chips" id="piece-chips"></div>
+      <div class="ramp" id="piece-ramp" style="margin-top:12px"></div>
       <div class="two" style="margin-top:16px">
         <div id="piece-heat"></div>
         <div class="orients" id="piece-orients"></div>
@@ -460,7 +471,7 @@ function readColors() {
   const g = n => cs.getPropertyValue(n).trim();
   C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
         line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
-        hatch: g('--hatch'), s1: g('--s1'), dark: g('--dark') === '1' };
+        hatch: g('--hatch'), s1: g('--s1'), fade: g('--fade'), dark: g('--dark') === '1' };
 }
 /* Piece colours are keyed by piece name, so a piece looks the same on both shapes and in both themes.
    Pieces only one shape has share a colour slot with a similar piece on the other (O/R, S/N, T/Y, l/V). */
@@ -480,6 +491,8 @@ function textOn(hexColor) {
 const HEAT = ['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#e0f3f8', '#abd9e9', '#74add1', '#4575b4'];
 const HEAT_DARK = ['#c4302a', '#e0603c', '#e89a55', '#e8c87a', '#e3e0a0', '#bcd8de', '#8fc0d8', '#6699c7', '#4575b4'];
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+// Blend two #rrggbb colours: f = 0 gives a, f = 1 gives b.
+const mix = (a, b, f) => '#' + hex(a).map((v, j) => Math.round(v + (hex(b)[j] - v) * f).toString(16).padStart(2, '0')).join('');
 function seqRGB(t) {
   t = Math.max(0, Math.min(1, t));
   const ramp = C.dark ? HEAT_DARK : HEAT;
@@ -550,20 +563,25 @@ function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells =
     ctx.fillStyle = C.cell;
     roundRect(ctx, x + g, y + g, cs - 2 * g, cs - 2 * g, Math.max(1, cs * 0.12));
   });
-  // Pieces, joined across shared edges.
+  // Pieces, joined across shared edges. Each piece is one path filled once: filling its cells
+  // separately left faint seams between them on screens with fractional pixel ratios.
+  const paths = new Map();
   s.cells.forEach(([r, c], i) => {
     if (!fills[i]) return;
-    const [x, y] = pos[i];
-    ctx.globalAlpha = alpha[i] ?? 1;
-    ctx.fillStyle = fills[i];
-    ctx.fillRect(x + g, y + g, cs - 2 * g, cs - 2 * g);
+    const id = groups[i] ?? 'cell' + i;
+    if (!paths.has(id)) paths.set(id, { path: new Path2D(), fill: fills[i], alpha: alpha[i] ?? 1 });
+    const path = paths.get(id).path, [x, y] = pos[i];
+    path.rect(x + g, y + g, cs - 2 * g, cs - 2 * g);
     const same = j => j !== undefined && groups[j] !== undefined && groups[j] === groups[i];
     const R = cellAt(r, c + 1), B = cellAt(r + 1, c), BR = cellAt(r + 1, c + 1);
-    if (same(R)) ctx.fillRect(x + cs - g, y + g, 2 * g, cs - 2 * g);
-    if (same(B)) ctx.fillRect(x + g, y + cs - g, cs - 2 * g, 2 * g);
-    if (same(R) && same(B) && same(BR)) ctx.fillRect(x + cs - g, y + cs - g, 2 * g, 2 * g);
-    ctx.globalAlpha = 1;
+    if (same(R)) path.rect(x + cs - g, y + g, 2 * g, cs - 2 * g);
+    if (same(B)) path.rect(x + g, y + cs - g, cs - 2 * g, 2 * g);
+    if (same(R) && same(B) && same(BR)) path.rect(x + cs - g, y + cs - g, 2 * g, 2 * g);
   });
+  for (const { path, fill, alpha: a } of paths.values()) {
+    ctx.globalAlpha = a; ctx.fillStyle = fill; ctx.fill(path);
+  }
+  ctx.globalAlpha = 1;
   // Labels.
   const fs = Math.max(7, Math.round(cs * 0.34));
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -621,11 +639,11 @@ function renderSolutions() {
 
   // Boards.
   const texts = allLabels(k);
-  const dc = [monthCell(m), dayCell(d)];
-  drawBoard(document.getElementById('board-empty'), k, { cs: 34, texts, dateCells: dc });
+  const dc = [monthCell(m), dayCell(d)], cs = boardCell(34);
+  drawBoard(document.getElementById('board-empty'), k, { cs, texts, dateCells: dc });
   const cv = document.getElementById('board-consensus');
   if (n) {
-    drawBoard(cv, k, { cs: 34, fills: cons.fills, groups: cons.groups, alpha: cons.alpha, texts: cons.texts,
+    drawBoard(cv, k, { cs, fills: cons.fills, groups: cons.groups, alpha: cons.alpha, texts: cons.texts,
                        dateCells: dc, textColors: cons.textColors });
     document.getElementById('consensus-cap').textContent =
       'Consensus: each cell shows its most common piece and how often (%). Paler cells are where solutions disagree.';
@@ -636,6 +654,14 @@ function renderSolutions() {
     `<span class="item">${pieceIcon(k, i, 9)}<span>${p.name} · ${p.shape.length} cells</span></span>`).join('');
 
   renderFinderAndGrid();
+}
+
+// Board cell size: fixed on wide screens; on phones, as big as the column allows (less `inset` for
+// any card padding around the board), so the boards aren't left small in a wide column.
+function boardCell(wide, inset = 0) {
+  if (!narrow.matches) return wide;
+  const col = document.getElementById('view-solutions').clientWidth - inset;
+  return Math.max(wide, Math.min(48, Math.floor((col - 8) / 7)));
 }
 
 /* Solutions sorted by piece at each cell in reading order; the finder narrows them cell by cell. */
@@ -664,7 +690,7 @@ function renderFinderAndGrid() {
     else if (next === null && shown.length) next = i;
   }
   if (next !== null) texts[next] = '?';
-  drawBoard(document.getElementById('finder-board'), k, { cs: 30, fills, groups, texts, dateCells: dc, ring: next });
+  drawBoard(document.getElementById('finder-board'), k, { cs: boardCell(30, 34), fills, groups, texts, dateCells: dc, ring: next });
 
   const q = document.getElementById('finder-q'), chips = document.getElementById('finder-chips');
   if (!n) { q.textContent = 'This date has no solutions.'; chips.innerHTML = ''; }
@@ -674,7 +700,7 @@ function renderFinderAndGrid() {
   } else {
     const tally = {};
     for (const [, x] of shown) tally[x[next]] = (tally[x[next]] || 0) + 1;
-    q.innerHTML = `${state.picks.length ? `<b>${fmt(shown.length)}</b> solutions still match. ` : ''}Which piece covers the ringed cell (<b>${s.labels[next]}</b>)?`;
+    q.innerHTML = `${state.picks.length ? `<b>${fmt(shown.length)}</b> solutions still match. ` : ''}Which piece covers the ringed cell (<b>${s.labels[next]}</b>)? Each button shows how many solutions it leaves.`;
     chips.innerHTML = Object.keys(tally).sort().map(p =>
       `<button data-pick="${next}:${p}">${pieceIcon(k, +p, 7)}${s.pieces[+p].name} <span class="ct">${tally[p]}</span></button>`).join('');
   }
@@ -724,11 +750,11 @@ function consensus(k, sols) {
     let best = null, bn = 0;
     for (const p in t) if (t[p] > bn) { bn = t[p]; best = p; }
     const f = bn / sols.length;
-    fills[i] = pieceColor(k, +best); groups[i] = f === 1 ? best : 'c' + i;
-    alpha[i] = 0.18 + 0.82 * f;
+    // Fade toward a neutral rather than letting the page show through: over the dark green ground,
+    // transparency turned yellow and orange into olive and brown.
+    fills[i] = mix(C.fade, pieceColor(k, +best), 0.18 + 0.82 * f); groups[i] = f === 1 ? best : 'c' + i;
     texts[i] = f === 1 ? '' : Math.round(f * 100) + '';
-    // Pale cells show the background through, so use the page's ink; solid ones pick by the fill.
-    textColors[i] = f > 0.6 ? textOn(fills[i]) : C.ink;
+    textColors[i] = textOn(fills[i]);
   }
   return { fills, groups, alpha, texts, textColors };
 }
@@ -956,15 +982,14 @@ function calendarHeatmap(k) {
   rampLegend(document.getElementById('cal-ramp'), lo, hi, 'solutions, log scale', s.median, true);
 }
 
-function boardSVG(k, values, { cs = 46, fmtV = v => v.toFixed(0), tip, lo, hi, mid = null, showLabel = true } = {}) {
+function boardSVG(k, values, { cs = 46, fmtV = v => v.toFixed(0), tip, lo, hi, mid = null, showLabel = true, paint = null } = {}) {
   const s = S[k];
   const W = 7 * cs, H = 7 * cs;
   let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto">`;
   s.cells.forEach(([r, c], i) => {
     const v = values[i];
     const t = v == null ? null : mid != null ? scaleT(v, lo, mid, hi) : (v - lo) / (hi - lo || 1);
-    const fill = t == null ? C.cell : seq(t);
-    const tc = t == null ? C.muted : seqText(t);
+    const [fill, tc] = t == null ? [C.cell, C.muted] : paint ? paint(t) : [seq(t), seqText(t)];
     out += `<g ${tip ? `data-tip="${esc(tip(i, v))}"` : ''}><rect x="${c * cs + 1.5}" y="${r * cs + 1.5}" width="${cs - 3}" height="${cs - 3}" rx="4" fill="${fill}"/>`;
     if (showLabel) out += `<text x="${c * cs + cs / 2}" y="${r * cs + cs * 0.4}" text-anchor="middle" font-size="${cs * 0.22}" fill="${tc}" opacity="0.8">${s.labels[i]}</text>`;
     if (v != null) out += `<text x="${c * cs + cs / 2}" y="${r * cs + cs * (showLabel ? 0.74 : 0.58)}" text-anchor="middle" font-size="${cs * 0.26}" font-weight="600" fill="${tc}" style="font-family:var(--font-mono)">${fmtV(v)}</text>`;
@@ -977,6 +1002,7 @@ function cellEffect(k) {
   const lo = Math.min(...e), hi = Math.max(...e);
   document.getElementById('cell-effect').innerHTML = `<div class="panel"><h4>Average ${fmt(Math.round(lo))}–${fmt(Math.round(hi))}</h4>` +
     boardSVG(k, e, { lo, hi, mid: medianOf(e), tip: (i, v) => `<b>${S[k].labels[i]}</b> left open: ${Math.round(v)} solutions on average` }) + '</div>';
+  rampLegend(document.getElementById('cell-ramp'), lo, hi, 'solutions on average');
 }
 
 function bars(id, cats, valueOf, catName) {
@@ -1005,7 +1031,7 @@ function rankTables(k) {
     <td class="barc"><div class="b" style="width:${(x.n / max) * 100}%"></div></td><td class="n num">${fmt(x.n)}</td></tr>`;
   document.getElementById('rank-low').innerHTML = s.sorted.slice(0, 10).map(row).join('');
   document.getElementById('rank-high').innerHTML = [...s.sorted].reverse().slice(0, 10).map(row).join('');
-  document.getElementById('rank-sub').textContent = `${s.name}, real dates only. Select a row to see its solutions.`;
+  document.getElementById('rank-sub').textContent = 'Real dates only. Select a row to see its solutions.';
 }
 
 function histogram(k) {
@@ -1029,7 +1055,7 @@ function histogram(k) {
   const mx = x(s.median);
   out += `<line x1="${mx}" x2="${mx}" y1="${T}" y2="${y(0)}" stroke="${C.ink}" stroke-width="1.5"/><text x="${mx + 5}" y="${T + 8}" font-size="12" fill="${C.ink}">median ${s.median}</text>`;
   document.getElementById('hist').innerHTML = out + '</svg>';
-  document.getElementById('hist-sub').textContent = `Number of real dates by solution count, ${s.name}, in bins of ${bin}.`;
+  document.getElementById('hist-sub').textContent = `Number of real dates by solution count, in bins of ${bin}.`;
 }
 
 function scatter() {
@@ -1100,18 +1126,25 @@ function pieces(k) {
   document.getElementById('piece-chips').innerHTML = s.pieces.map((q, i) =>
     `<button data-piece="${i}" aria-pressed="${i === p}">${pieceIcon(k, i, 7)}${q.name}</button>`).join('');
   const vals = st.cover[p].map(v => v / st.N * 100);
-  const hi = Math.max(...vals);
+  const lo = Math.min(...vals), hi = Math.max(...vals), col = pieceColor(k, p);
+  // One hue, the piece's own: from an empty cell (least often) to full colour (most often). Not the red-to-blue
+  // scale, which elsewhere means hard vs easy.
+  const paint = t => { const f = mix(C.cell, col, t); return [f, textOn(f)]; };
+  document.getElementById('piece-ramp').innerHTML = `<span class="num">${pct(lo)}</span><span class="bar" style="background:linear-gradient(90deg,${C.cell},${col})"></span><span class="num">${pct(hi)}</span><span>of solutions</span>`;
   document.getElementById('piece-heat').innerHTML = `<div class="panel"><h4>Piece ${s.pieces[p].name}: share of ${fmt(st.N)} solutions covering each cell</h4>` +
-    boardSVG(k, vals, { lo: 0, hi, fmtV: v => Math.round(v) + '%', tip: (i, v) => `<b>${s.labels[i]}</b>: piece ${s.pieces[p].name} covers it in ${v.toFixed(1)}% of solutions` }) + '</div>';
+    boardSVG(k, vals, { lo, hi, fmtV: pct, paint, tip: (i, v) => `<b>${s.labels[i]}</b>: piece ${s.pieces[p].name} covers it in ${pct(v)} of solutions` }) + '</div>';
   const entries = [...st.orient[p].entries()].sort((x, y) => y[1] - x[1]);
   const top = entries[0][1];
   document.getElementById('piece-orients').innerHTML =
     `<h4 style="grid-column:1/-1;margin:0;font-size:14px;color:var(--ink-2)">${entries.length} orientation${entries.length > 1 ? 's' : ''} used</h4>` +
     entries.map(([kk, n]) => {
       const pts = kk.split(';').map(t => t.split(',').map(Number));
-      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${(n / st.N * 100).toFixed(1)}%</div><div class="ob" style="width:${n / top * 100}%;background:${pieceColor(k, p)}"></div></div></div>`;
+      return `<div class="orient"><div>${pieceIcon(k, p, 10, pts)}</div><div><div class="num">${pct(n / st.N * 100)}</div><div class="ob" style="width:${n / top * 100}%;background:${pieceColor(k, p)}"></div></div></div>`;
     }).join('');
 }
+
+// Whole percentages; anything above zero that would round away shows as <1%.
+function pct(v) { return v > 0 && v < 0.5 ? '<1%' : Math.round(v) + '%'; }
 
 function impossible() {
   const list = [];
@@ -1135,7 +1168,7 @@ monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option
 const narrow = matchMedia('(max-width: 640px)');
 const nameMonths = () => [...monthSel.options].forEach((o, i) => { o.textContent = narrow.matches ? MON[i] : MONTHS[i]; });
 nameMonths();
-narrow.addEventListener('change', nameMonths);
+narrow.addEventListener('change', () => { nameMonths(); render(); });
 daySel.innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
 function syncControls() {
   monthSel.value = state.m; daySel.value = state.d;
