@@ -289,7 +289,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
       </div>
       <div class="boardcard">
         <canvas id="board-empty"></canvas>
-        <div class="cap">The board for this date — the two open cells stay uncovered.</div>
+        <div class="cap">The board for this date, with its two open cells left uncovered.</div>
       </div>
       <div class="boardcard">
         <canvas id="board-consensus"></canvas>
@@ -329,7 +329,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
     <section class="chart">
       <header>
-        <div><h3>The year at a glance</h3><p>Solutions for every month/day pair. Hatched cells are dates that don't exist — the puzzle can still be set to them. Select a cell to open that date.</p></div>
+        <div><h3>The year at a glance</h3><p>Solutions for every month/day pair. Hatched cells are dates that don't exist, though the puzzle can still be set to them. Select a cell to open that date.</p></div>
         <div class="ramp" id="cal-ramp"></div>
       </header>
       <div class="scroll-x" id="cal"></div>
@@ -387,7 +387,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
     <section class="chart">
       <header>
-        <div><h3>Every pair of holes, not just dates</h3><p id="pairs-sub"></p></div>
+        <div><h3>Every pair of holes</h3><p id="pairs-sub"></p></div>
         <div class="ramp" id="pairs-ramp"></div>
       </header>
       <div class="scroll-x" id="pairs"></div>
@@ -888,7 +888,7 @@ function pairMatrix(k) {
   document.getElementById('pairs').innerHTML = out + '</svg>';
   rampLegend(document.getElementById('pairs-ramp'), lo, hi, `solutions · ${C.dark ? 'white' : 'black'} = none`, mid);
   document.getElementById('pairs-sub').textContent =
-    `The board can be tiled with any two cells left open, not just a month and a day. Each square is one pair; ` +
+    `The board can be tiled with any two cells left open, including two months or two days. Each square is one pair; ` +
     `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
     `Across all ${fmt(n * (n - 1) / 2)} pairs there are ` +
     `${fmt(pi.total)} tilings, and only ${Math.round(pi.dates / pi.total * 100)}% of them spell out a month and a day.`;
