@@ -20,6 +20,7 @@ existing tokens, not new colours or fonts.
 - **Pieces** are alphabetical (L before l, as in `solve.py`) and coloured by name via `PIECE_COLOR`,
   so a piece shared by both shapes looks the same everywhere, in both themes.
 - Check every UI change in **both** themes and at phone width.
+- Charts scale down to the column width (`.fit`); nothing scrolls sideways on a phone.
 
 ## Who it's for
 

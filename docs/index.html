@@ -197,7 +197,7 @@ section.chart { padding-block: 28px 8px; border-top: 1px solid var(--line); marg
 section.chart > header { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
 section.chart h3 { font-size: 22px; font-weight: 700; }
 section.chart header p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; max-width: 68ch; }
-.scroll-x { overflow-x: auto; }
+.fit svg { display: block; max-width: 100%; height: auto; }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 .panel h4 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
 svg text { font-family: var(--font-body); }
@@ -335,7 +335,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
         <div><h3>The year at a glance</h3><p>Solutions for every month/day pair. Hatched cells are dates that don't exist, though the puzzle can still be set to them. Select a cell to open that date.</p></div>
         <div class="ramp" id="cal-ramp"></div>
       </header>
-      <div class="scroll-x" id="cal"></div>
+      <div class="fit" id="cal"></div>
     </section>
 
     <section class="chart">
@@ -349,14 +349,14 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
       <header>
         <div><h3>Months, most to least generous</h3><p>Average solutions per date in each month (real dates only).</p></div>
       </header>
-      <div class="scroll-x" id="months"></div>
+      <div class="fit" id="months"></div>
     </section>
 
     <section class="chart">
       <header>
         <div><h3>Day of the month</h3><p>Average solutions for each day number, over the months that have that day.</p></div>
       </header>
-      <div class="scroll-x" id="days"></div>
+      <div class="fit" id="days"></div>
     </section>
 
     <section class="chart">
@@ -369,7 +369,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
     <section class="chart">
       <header><div><h3>How solution counts are spread</h3><p id="hist-sub"></p></div></header>
-      <div class="scroll-x" id="hist"></div>
+      <div class="fit" id="hist"></div>
     </section>
 
     <section class="chart">
@@ -386,7 +386,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
         <div><h3>Every pair of holes</h3><p id="pairs-sub"></p></div>
         <div class="ramp" id="pairs-ramp"></div>
       </header>
-      <div class="scroll-x" id="pairs"></div>
+      <div class="fit" id="pairs"></div>
     </section>
 
     <section class="chart">
@@ -396,7 +396,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 
     <section class="chart">
       <header><div><h3>How do the Shapes compare?</h3><p id="scatter-sub"></p></div></header>
-      <div class="scroll-x" id="scatter"></div>
+      <div class="fit" id="scatter"></div>
     </section>
   </div>
 
@@ -1013,7 +1013,7 @@ function rankTables(k) {
 
 function histogram(k) {
   const s = S[k], vals = s.real.map(x => x.n), max = Math.max(...vals);
-  const bin = max > 400 ? 25 : 10;
+  const bin = max > 400 ? 10 : 5;
   const nb = Math.ceil((max + 1) / bin), bins = new Array(nb).fill(0);
   for (const v of vals) bins[Math.floor(v / bin)]++;
   const { ticks, top } = niceTicks(Math.max(...bins), 4);
@@ -1027,7 +1027,7 @@ function histogram(k) {
     if (c) out += `<path d="M${L + i * bw + 1},${y(0)} v${-Math.max(0, h - 3)} q0,-3 3,-3 h${bw - 8} q3,0 3,3 v${Math.max(0, h - 3)} z" fill="${C.s1}"/>`;
     out += `<rect x="${L + i * bw}" y="${T}" width="${bw}" height="${Hp}" fill="transparent" data-tip="<b>${i * bin}–${i * bin + bin - 1}</b> solutions: ${c} date${c === 1 ? '' : 's'}"/>`;
   });
-  const step = bin * Math.ceil(nb / 10);
+  const step = niceTicks(nb * bin, 8).ticks[1];
   for (let v = 0; v <= nb * bin; v += step) out += `<text x="${x(v)}" y="${H - 10}" text-anchor="middle" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${v}</text>`;
   const mx = x(s.median);
   out += `<line x1="${mx}" x2="${mx}" y1="${T}" y2="${y(0)}" stroke="${C.ink}" stroke-width="1.5"/><text x="${mx + 5}" y="${T + 8}" font-size="12" fill="${C.ink}">median ${s.median}</text>`;
@@ -1048,7 +1048,7 @@ function scatter() {
   for (let e = 0; e < 7; e++) for (const s of steps) logTicks.push(s * 10 ** e);
   const lo = [...logTicks].reverse().find(v => v <= Math.min(...xs, ...ys)), hi = logTicks.find(v => v >= Math.max(...xs, ...ys));
   const ticks = logTicks.filter(v => v >= lo && v <= hi);
-  const L = 48, B = 40, T = 12, P = 520, W = L + P + 16, H = T + P + B;
+  const L = 66, B = 40, T = 12, P = 520, W = L + P + 16, H = T + P + B;
   const f = v => (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo));
   const px = v => L + f(v) * P, py = v => T + P - f(v) * P;
   const at = t => lo * (hi / lo) ** t;  // value at fraction t along an axis
@@ -1059,7 +1059,7 @@ function scatter() {
     out += `<line x1="${px(t)}" x2="${px(t)}" y1="${T}" y2="${T + P}" stroke="${edge ? C.axis : C.line}"/><text x="${px(t)}" y="${T + P + 16}" text-anchor="middle" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${fmt(t)}</text>`;
   }
   out += `<text x="${L + P / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${C.ink2}">Shape 1 solutions (log scale) →</text>`;
-  out += `<text x="${L + 6}" y="${T + 14}" font-size="12" fill="${C.ink2}">↑ Shape 2 solutions (log scale)</text>`;
+  out += `<text transform="translate(16,${T + P / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="${C.ink2}">Shape 2 solutions (log scale) →</text>`;
   // y = x reference line and the two regions it splits.
   const more1 = xs.filter((x, i) => x > ys[i]).length, more2 = xs.filter((x, i) => x < ys[i]).length, tie = xs.length - more1 - more2;
   out += `<line x1="${px(lo)}" y1="${py(lo)}" x2="${px(hi)}" y2="${py(hi)}" stroke="${C.ink2}" stroke-width="1.25" stroke-opacity="0.7"/>`;
@@ -1073,7 +1073,8 @@ function scatter() {
   // Label the extremes of each shape.
   const idx = [xs.indexOf(Math.max(...xs)), ys.indexOf(Math.max(...ys)), xs.indexOf(Math.min(...xs)), ys.indexOf(Math.min(...ys))];
   [...new Set(idx)].forEach(i => {
-    const x0 = px(xs[i]), anchor = x0 > L + P - 80 ? 'end' : 'start';
+    // The top point sits by the y = x caption, so its label goes to the left.
+    const x0 = px(xs[i]), anchor = x0 > L + P - 80 || i === idx[1] ? 'end' : 'start';
     out += `<text x="${x0 + (anchor === 'end' ? -8 : 8)}" y="${py(ys[i]) - 6}" text-anchor="${anchor}" font-size="12" fill="${C.ink}">${dateName(a[i].m, a[i].d)}</text>`;
   });
   document.getElementById('scatter').innerHTML = out + '</svg>';
