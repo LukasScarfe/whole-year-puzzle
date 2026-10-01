@@ -134,6 +134,11 @@ button, select { font: inherit; color: inherit; }
 .text-btn { padding: 0 12px; }
 .finder-actions .text-btn, dialog .icon-btn { height: 32px; }
 dialog .icon-btn { width: 32px; }
+#variant-seg[hidden] { display: none; }
+/* Axis pickers for the comparison scatter. */
+.axis-pick { display: flex; flex-wrap: wrap; gap: 16px; margin: 4px 0 16px; }
+.axis-pick label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.axis-pick select { height: var(--ctl); border: 1px solid var(--axis); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 0 8px; font-size: 14px; cursor: pointer; }
 
 /* Wide screens: the one-row header stays pinned. */
 @media (min-width: 1101px) {
@@ -148,7 +153,8 @@ dialog .icon-btn { width: 32px; }
 /* Phone: name and theme button on top, the title centred on its own row below them. */
 @media (max-width: 640px) {
   .masthead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "me theme" "title title" "nav nav"; --title: 19px; }
-  .nav { gap: 8px; }
+  /* Tabs and the shape buttons share the first row; the Heart variant picker wraps below when shown. */
+  .nav { gap: 8px; flex-wrap: wrap; }
   .tabs button, .seg button { padding: 0 6px; font-size: 13px; }
   /* Phone: the shape buttons show only their board outline, leaving the tabs more room. */
   .seg { flex: none; }
@@ -174,7 +180,7 @@ dialog .icon-btn { width: 32px; }
 .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--date); color: var(--date-ink); vertical-align: middle; }
 .boardcard { display: grid; gap: 6px; justify-items: start; }
 .boardcard .cap { font-size: 12px; color: var(--muted); max-width: 250px; }
-.boardcard canvas { display: block; }
+.boardcard canvas { display: block; max-width: 100%; height: auto; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 12px 0 16px; border-top: 1px solid var(--line); }
 .legend .item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
@@ -184,7 +190,7 @@ dialog .icon-btn { width: 32px; }
   display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px 24px; align-items: start;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 24px;
 }
-.finder canvas { display: block; }
+.finder canvas { display: block; max-width: 100%; height: auto; }
 .finder h3 { font-size: 20px; }
 .finder-body { display: grid; gap: 10px; justify-items: start; }
 .finder-body p { margin: 0; color: var(--ink-2); max-width: 60ch; }
@@ -200,7 +206,7 @@ dialog .icon-btn { width: 32px; }
   border: 0; background: transparent; padding: 0; cursor: zoom-in; display: grid; justify-items: center; gap: 2px;
   border-radius: 6px;
 }
-.sol canvas { display: block; }
+.sol canvas { display: block; max-width: 100%; height: auto; }
 .sol span { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
 .sol:hover span { color: var(--ink); }
 
@@ -347,6 +353,11 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
       <div class="seg" role="group" aria-label="Puzzle shape" id="shape-seg">
         <button id="shape-shape1" data-shape="shape1" aria-pressed="false">Shape 1</button>
         <button id="shape-shape2" data-shape="shape2" aria-pressed="true">Shape 2</button>
+        <button id="shape-heart" data-board="heart" aria-pressed="false">Heart</button>
+      </div>
+      <div class="seg" role="group" aria-label="Heart piece set" id="variant-seg" hidden>
+        <button data-shape="heart1" aria-pressed="false">Set 1</button>
+        <button data-shape="heart2" aria-pressed="false">Set 2</button>
       </div>
     </nav>
     <button class="theme-btn" id="theme-toggle" aria-label="Switch to light mode"></button>
@@ -501,7 +512,11 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </section>
 
     <section class="chart">
-      <header><div><h3>How do the Shapes compare?</h3><p id="scatter-sub"></p></div></header>
+      <header><div><h3>How do two puzzles compare?</h3><p id="scatter-sub"></p></div></header>
+      <div class="axis-pick">
+        <label>Horizontal <select id="scatter-x" aria-label="Puzzle on the horizontal axis"></select></label>
+        <label>Vertical <select id="scatter-y" aria-label="Puzzle on the vertical axis"></select></label>
+      </div>
       <div class="fit" id="scatter"></div>
     </section>
   </div>
@@ -543,8 +558,15 @@ const D = window.PUZZLE_DATA;
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MON = MONTHS.map(m => m.slice(0, 3));
 const DIM = [31,29,31,30,31,30,31,31,30,31,30,31];
-const SHAPES = ['shape1', 'shape2'];
-const SHAPE_LABEL = { shape1: 'Shape 1', shape2: 'Shape 2' };
+const SHAPES = ['shape1', 'shape2', 'heart1', 'heart2'];
+// The Heart board offers two piece-set variants; they appear only once the Heart board is selected.
+const HEARTS = ['heart1', 'heart2'];
+const isHeart = k => HEARTS.includes(k);
+const boardOf = k => isHeart(k) ? 'heart' : k;         // the top-level board a shape belongs to
+const SHAPE_LABEL = { shape1: 'Shape 1', shape2: 'Shape 2', heart1: 'Heart · Set 1', heart2: 'Heart · Set 2' };
+const SHAPE_SHORT = { shape1: 'Shape 1', shape2: 'Shape 2', heart1: 'Heart 1', heart2: 'Heart 2' };
+// The last Heart variant the viewer looked at, so the Heart board button returns to it.
+let lastHeart = 'heart1';
 const valid = (m, d) => d <= DIM[m - 1];
 const key = (m, d) => `${m}-${d}`;
 const fmt = n => n.toLocaleString('en-US');
@@ -552,11 +574,13 @@ const ord = n => n + (['th','st','nd','rd'][(n % 100 - 20) % 10] || ['th','st','
 const dateName = (m, d) => `${MON[m - 1]} ${d}`;
 
 /* ---------- derived data ---------- */
+// Cells are indexed by (row, col) into a flat map; GW is a stride wider than any board (Heart is 9).
+const GW = 16;
 const S = {};
 for (const k of SHAPES) {
   const s = D[k];
   const at = {};
-  s.cells.forEach(([r, c], i) => at[r * 7 + c] = i);
+  s.cells.forEach(([r, c], i) => at[r * GW + c] = i);
   const counts = {};
   const real = [];
   for (let m = 1; m <= 12; m++) for (let d = 1; d <= 31; d++) {
@@ -602,7 +626,13 @@ function desaturate(hex, f) {
   return '#' + rgb.map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
 }
 const PIECE_COLOR_LIGHT = Object.fromEntries(Object.entries(PIECE_COLOR).map(([n, c]) => [n, desaturate(c, 0.9)]));
-const pieceColor = (k, p) => (C.dark ? PIECE_COLOR : PIECE_COLOR_LIGHT)[S[k].pieces[p].name];
+// A shape may carry its own name->colour map (the Heart board does, since its pieces aren't shared
+// with Shapes 1 and 2); otherwise the piece's shared colour is used. Light theme desaturates the same way.
+function pieceColor(k, p) {
+  const name = S[k].pieces[p].name;
+  const base = (S[k].colors && S[k].colors[name]) || PIECE_COLOR[name];
+  return C.dark ? base : desaturate(base, 0.9);
+}
 // Dark or white text, whichever reads better on a given fill.
 function textOn(hexColor) {
   const [r, g, b] = hex(hexColor).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
@@ -639,7 +669,8 @@ if (SHAPES.includes(OG)) {
 
 /* ---------- state ---------- */
 const now = new Date();
-const state = { view: 'play', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [] };
+const state = { view: 'play', shape: 'shape2', m: now.getMonth() + 1, d: now.getDate(), piece: 0, picks: [],
+                sx: 'shape1', sy: 'shape2' };   // the two puzzles on the comparison scatter's axes
 try {
   const saved = JSON.parse(localStorage.getItem('wya-state') || '{}');
   if (SHAPES.includes(saved.shape)) state.shape = saved.shape;
@@ -679,12 +710,12 @@ function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells =
   const s = S[k];
   const g = Math.max(1, Math.round(cs * 0.07));
   const lw = Math.max(1.5, cs * 0.07), pad = Math.ceil(lw) + 1;
-  const W = 7 * cs + 2 * pad, H = 7 * cs + 2 * pad;
+  const W = s.width * cs + 2 * pad, H = s.height * cs + 2 * pad;
   const ctx = setupCanvas(cv, W, H);
   ctx.clearRect(0, 0, W, H);
   ctx.translate(pad, pad);
   const pos = s.cells.map(([r, c]) => [c * cs, r * cs]);
-  const cellAt = (r, c) => (r < 0 || c < 0 || r > 6 || c > 6) ? undefined : s.at[r * 7 + c];
+  const cellAt = (r, c) => (r < 0 || c < 0 || r >= s.height || c >= s.width) ? undefined : s.at[r * GW + c];
   // Outline of the whole board, so its edge is clear even where holes sit on it.
   ctx.strokeStyle = C.muted; ctx.lineWidth = lw; ctx.lineCap = 'square';
   ctx.beginPath();
@@ -800,7 +831,7 @@ function renderSolutions() {
 function boardCell(wide, inset = 0) {
   if (!narrow.matches) return wide;
   const col = document.getElementById('view-solutions').clientWidth - inset;
-  return Math.max(wide, Math.min(48, Math.floor((col - 8) / 7)));
+  return Math.max(wide, Math.min(48, Math.floor((col - 8) / S[state.shape].width)));
 }
 
 /* Solutions sorted by piece at each cell in reading order; the finder narrows them cell by cell. */
@@ -908,7 +939,7 @@ function showDialog(i) {
   document.getElementById('dlg-title').textContent =
     `${dateName(state.m, state.d)} · ${SHAPE_LABEL[k]} · solution #${num} of ${fmt(total)}` +
     (shown.length < total ? ` (${dlgI + 1} of ${shown.length} matching)` : '');
-  const cs = Math.min(52, Math.floor((window.innerWidth - 72) / 7));
+  const cs = Math.min(52, Math.floor((window.innerWidth - 72) / S[k].width));
   drawSolution(document.getElementById('dlg-canvas'), k, sol, cs, true);
   document.querySelectorAll('#dlg-prev, #dlg-next').forEach(b => b.hidden = shown.length < 2);
   document.getElementById('dlg-share').textContent = 'Share!';
@@ -948,12 +979,12 @@ function playReset() {
 // The board cells piece p would cover at `at`, or null if any would be off the board, on the date or on another piece.
 function fits(p, cells, at) {
   const s = S[state.shape], dc = playDates(), taken = new Set();
-  P.pieces.forEach((q, j) => { if (j !== p && q.at) for (const [r, c] of q.cells) taken.add(s.at[(q.at[0] + r) * 7 + q.at[1] + c]); });
+  P.pieces.forEach((q, j) => { if (j !== p && q.at) for (const [r, c] of q.cells) taken.add(s.at[(q.at[0] + r) * GW + q.at[1] + c]); });
   const out = [];
   for (const [r, c] of cells) {
     const R = at[0] + r, Cc = at[1] + c;
-    if (R < 0 || Cc < 0 || R > 6 || Cc > 6) return null;
-    const i = s.at[R * 7 + Cc];
+    if (R < 0 || Cc < 0 || R >= s.height || Cc >= s.width) return null;
+    const i = s.at[R * GW + Cc];
     if (i === undefined || dc.includes(i) || taken.has(i)) return null;
     out.push(i);
   }
@@ -998,16 +1029,17 @@ function renderPlay() {
     (valid(m, d) ? '' : ` <span class="pill">Not a real date</span>`);
   // Phones: the board fills the column and the tray fits four pieces a row.
   const col = document.getElementById('view-play').clientWidth;
-  P.cs = narrow.matches ? Math.max(30, Math.min(56, Math.floor((col - 8) / 7))) : 56;
+  P.cs = narrow.matches ? Math.max(24, Math.min(56, Math.floor((col - 8) / s.width))) : 56;
   P.tcs = narrow.matches ? Math.max(12, Math.min(28, Math.floor((col - 82) / 16))) : 28;
   drawPlayBoard(); drawTray(); playStatus();
 }
 function drawPlayBoard() {
   const s = S[state.shape], cs = P.cs, g = gapOf(cs), dc = playDates(), solved = playSolved();
-  const lw = Math.max(1.5, cs * 0.07), pad = P.pad = Math.ceil(lw) + 1, W = 7 * cs + 2 * pad;
+  const lw = Math.max(1.5, cs * 0.07), pad = P.pad = Math.ceil(lw) + 1;
+  const W = s.width * cs + 2 * pad, H = s.height * cs + 2 * pad;
   const svg = document.getElementById('play-board');
-  svg.setAttribute('width', W); svg.setAttribute('height', W); svg.setAttribute('viewBox', `0 0 ${W} ${W}`);
-  const cellAt = (r, c) => (r < 0 || c < 0 || r > 6 || c > 6) ? undefined : s.at[r * 7 + c];
+  svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const cellAt = (r, c) => (r < 0 || c < 0 || r >= s.height || c >= s.width) ? undefined : s.at[r * GW + c];
   let edge = '', cells = '', labels = '';
   const fs = Math.max(7, Math.round(cs * 0.34));
   s.cells.forEach(([r, c], i) => {
@@ -1054,7 +1086,7 @@ function playStatus() {
     return;
   }
   const sol = Array(s.cells.length).fill('.');
-  P.pieces.forEach((q, p) => q.cells.forEach(([r, c]) => { sol[s.at[(q.at[0] + r) * 7 + q.at[1] + c]] = String(p); }));
+  P.pieces.forEach((q, p) => q.cells.forEach(([r, c]) => { sol[s.at[(q.at[0] + r) * GW + q.at[1] + c]] = String(p); }));
   const num = sortedSolutions(k, m, d).indexOf(sol.join('')) + 1, total = s.counts[key(m, d)];
   const line = `That's solution <b>#${fmt(num)}</b> of ${fmt(total)}.`;
   el.innerHTML = `<b>Solved!</b> ${line} <button class="link" id="play-again">Show result</button>`;
@@ -1491,7 +1523,7 @@ function calendarHeatmap(k) {
 
 function boardSVG(k, values, { cs = 46, fmtV = v => v.toFixed(0), tip, lo, hi, mid = null, showLabel = true, paint = null } = {}) {
   const s = S[k];
-  const W = 7 * cs, H = 7 * cs;
+  const W = s.width * cs, H = s.height * cs;
   let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto">`;
   s.cells.forEach(([r, c], i) => {
     const v = values[i];
@@ -1566,7 +1598,8 @@ function histogram(k) {
 }
 
 function scatter() {
-  const a = S.shape1.real, b = S.shape2.real;
+  const kx = state.sx, ky = state.sy;
+  const a = S[kx].real, b = S[ky].real;
   const xs = a.map(p => p.n), ys = b.map(p => p.n);
   // One shared log scale on both axes, so the y = x line is a true 45° diagonal and ratios read the same everywhere.
   const steps = [1, 2, 5], logTicks = [];
@@ -1583,17 +1616,17 @@ function scatter() {
     out += `<line x1="${L}" x2="${L + P}" y1="${py(t)}" y2="${py(t)}" stroke="${edge ? C.axis : C.line}"/><text x="${L - 8}" y="${py(t) + 4}" text-anchor="end" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${fmt(t)}</text>`;
     out += `<line x1="${px(t)}" x2="${px(t)}" y1="${T}" y2="${T + P}" stroke="${edge ? C.axis : C.line}"/><text x="${px(t)}" y="${T + P + 16}" text-anchor="middle" font-size="11" fill="${C.muted}" style="font-family:var(--font-mono)">${fmt(t)}</text>`;
   }
-  out += `<text x="${L + P / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${C.ink2}">Shape 1 solutions (log scale) →</text>`;
-  out += `<text transform="translate(16,${T + P / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="${C.ink2}">Shape 2 solutions (log scale) →</text>`;
+  out += `<text x="${L + P / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${C.ink2}">${SHAPE_LABEL[kx]} solutions (log scale) →</text>`;
+  out += `<text transform="translate(16,${T + P / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="${C.ink2}">${SHAPE_LABEL[ky]} solutions (log scale) →</text>`;
   // y = x reference line and the two regions it splits.
-  const more1 = xs.filter((x, i) => x > ys[i]).length, more2 = xs.filter((x, i) => x < ys[i]).length, tie = xs.length - more1 - more2;
+  const harderX = xs.filter((x, i) => x < ys[i]).length, harderY = xs.filter((x, i) => x > ys[i]).length, tie = xs.length - harderX - harderY;
   out += `<line x1="${px(lo)}" y1="${py(lo)}" x2="${px(hi)}" y2="${py(hi)}" stroke="${C.ink2}" stroke-width="1.25" stroke-opacity="0.7"/>`;
-  out += `<text transform="translate(${px(at(0.8))},${py(at(0.8)) - 8}) rotate(-45)" text-anchor="middle" font-size="12" fill="${C.ink2}">y = x · same count on both shapes</text>`;
-  out += `<text x="${px(at(0.04))}" y="${py(at(0.62))}" font-size="13" font-weight="600" fill="${C.ink}">Harder on Shape 1</text><text x="${px(at(0.04))}" y="${py(at(0.62)) + 17}" font-size="12" fill="${C.ink2}">${more2} dates</text>`;
-  out += `<text x="${px(at(0.97))}" y="${py(at(0.2))}" text-anchor="end" font-size="13" font-weight="600" fill="${C.ink}">Harder on Shape 2</text><text x="${px(at(0.97))}" y="${py(at(0.2)) + 17}" text-anchor="end" font-size="12" fill="${C.ink2}">${more1} dates${tie ? ` · ${tie} tied` : ''}</text>`;
+  out += `<text transform="translate(${px(at(0.8))},${py(at(0.8)) - 8}) rotate(-45)" text-anchor="middle" font-size="12" fill="${C.ink2}">y = x · same count on both</text>`;
+  out += `<text x="${px(at(0.04))}" y="${py(at(0.62))}" font-size="13" font-weight="600" fill="${C.ink}">Harder on ${SHAPE_LABEL[kx]}</text><text x="${px(at(0.04))}" y="${py(at(0.62)) + 17}" font-size="12" fill="${C.ink2}">${harderX} dates</text>`;
+  out += `<text x="${px(at(0.97))}" y="${py(at(0.2))}" text-anchor="end" font-size="13" font-weight="600" fill="${C.ink}">Harder on ${SHAPE_LABEL[ky]}</text><text x="${px(at(0.97))}" y="${py(at(0.2)) + 17}" text-anchor="end" font-size="12" fill="${C.ink2}">${harderY} dates${tie ? ` · ${tie} tied` : ''}</text>`;
   a.forEach((p, i) => {
     out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="4" fill="${C.s1}" fill-opacity="0.75" stroke="${C.surface}" stroke-width="1.5"/>`;
-    out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="8" fill="transparent" data-go="${p.m}-${p.d}" style="cursor:pointer" data-tip="<b>${dateName(p.m, p.d)}</b><br>Shape 1: ${xs[i]}<br>Shape 2: ${ys[i]}"/>`;
+    out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="8" fill="transparent" data-go="${p.m}-${p.d}" style="cursor:pointer" data-tip="<b>${dateName(p.m, p.d)}</b><br>${SHAPE_SHORT[kx]}: ${xs[i]}<br>${SHAPE_SHORT[ky]}: ${ys[i]}"/>`;
   });
   // Label the extremes of each shape.
   const idx = [xs.indexOf(Math.max(...xs)), ys.indexOf(Math.max(...ys)), xs.indexOf(Math.min(...xs)), ys.indexOf(Math.min(...ys))];
@@ -1622,8 +1655,8 @@ function scatter() {
   document.getElementById('scatter').innerHTML = out + '</svg>';
   const pct = n => Math.round(n / xs.length * 100) + '%';
   document.getElementById('scatter-sub').textContent =
-    `One dot per real date; fewer solutions means harder. Shape 2 is harder on ${pct(more1)} of dates (${more1}), ` +
-    `Shape 1 on ${pct(more2)} (${more2}), and ${pct(tie)} (${tie}) are tied.`;
+    `One dot per real date; fewer solutions means harder. ${SHAPE_LABEL[ky]} is harder on ${pct(harderY)} of dates (${harderY}), ` +
+    `${SHAPE_LABEL[kx]} on ${pct(harderX)} (${harderX}), and ${pct(tie)} (${tie}) are tied.`;
 }
 
 function pieces(k) {
@@ -1659,21 +1692,25 @@ function pct(v) { return v > 0 && v < 0.5 ? '<1%' : Math.round(v) + '%'; }
 function impossible() {
   const list = [];
   for (let m = 1; m <= 12; m++) for (let d = DIM[m - 1] + 1; d <= 31; d++) list.push([m, d]);
-  document.getElementById('impossible').innerHTML =
-    `<tr><th>Date</th><th style="text-align:right">Shape 1</th><th style="text-align:right">Shape 2</th></tr>` +
-    list.map(([m, d]) => `<tr data-go="${m}-${d}"><td>${dateName(m, d)}</td><td class="n num">${fmt(S.shape1.counts[key(m, d)])}</td><td class="n num">${fmt(S.shape2.counts[key(m, d)])}</td></tr>`).join('');
+  const head = `<tr><th>Date</th>${SHAPES.map(k => `<th style="text-align:right">${SHAPE_SHORT[k]}</th>`).join('')}</tr>`;
+  document.getElementById('impossible').innerHTML = head +
+    list.map(([m, d]) => `<tr data-go="${m}-${d}"><td>${dateName(m, d)}</td>` +
+      SHAPES.map(k => `<td class="n num">${fmt(S[k].counts[key(m, d)])}</td>`).join('') + '</tr>').join('');
 }
 
 /* ---------- controls ---------- */
 // Each shape button carries a small outline of its board.
 function shapeIcon(k) {
-  const u = 4;
-  return `<svg width="${7 * u}" height="${7 * u}" viewBox="0 0 ${7 * u} ${7 * u}" aria-hidden="true">` +
-    S[k].cells.map(([r, c]) => `<rect x="${c * u + 0.5}" y="${r * u + 0.5}" width="${u - 1}" height="${u - 1}" fill="currentColor"/>`).join('') + '</svg>';
+  const s = S[k], u = 4;
+  return `<svg width="${s.width * u}" height="${s.height * u}" viewBox="0 0 ${s.width * u} ${s.height * u}" aria-hidden="true">` +
+    s.cells.map(([r, c]) => `<rect x="${c * u + 0.5}" y="${r * u + 0.5}" width="${u - 1}" height="${u - 1}" fill="currentColor"/>`).join('') + '</svg>';
 }
+// The Heart board button carries the board outline and the word "Heart"; its variants pick the piece set.
 document.querySelectorAll('#shape-seg button').forEach(b => {
-  b.innerHTML = shapeIcon(b.dataset.shape) + `<span class="lbl">${SHAPE_LABEL[b.dataset.shape]}</span>`;
-  b.setAttribute('aria-label', SHAPE_LABEL[b.dataset.shape]);
+  const label = b.dataset.board === 'heart' ? 'Heart' : SHAPE_LABEL[b.dataset.shape];
+  const iconKey = b.dataset.board === 'heart' ? 'heart1' : b.dataset.shape;
+  b.innerHTML = shapeIcon(iconKey) + `<span class="lbl">${label}</span>`;
+  b.setAttribute('aria-label', label);
 });
 const monthSel = document.getElementById('month'), daySel = document.getElementById('day');
 monthSel.innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
@@ -1684,9 +1721,15 @@ nameMonths();
 narrow.addEventListener('change', () => { nameMonths(); render(); });
 daySel.innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
 function syncControls() {
+  if (isHeart(state.shape)) lastHeart = state.shape;
   monthSel.value = state.m; daySel.value = state.d;
   [...daySel.options].forEach(o => { o.textContent = o.value + (valid(state.m, +o.value) ? '' : ' ✕'); });
-  document.querySelectorAll('#shape-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.shape === state.shape));
+  document.querySelectorAll('#shape-seg button').forEach(b =>
+    b.setAttribute('aria-pressed', (b.dataset.board || b.dataset.shape) === boardOf(state.shape)));
+  // The Heart variant picker shows only while a Heart variant is the active board.
+  const vseg = document.getElementById('variant-seg');
+  vseg.hidden = !isHeart(state.shape);
+  vseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.shape === state.shape));
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === state.view));
   document.getElementById('view-solutions').hidden = state.view !== 'solutions';
   document.getElementById('view-stats').hidden = state.view !== 'stats';
@@ -1716,8 +1759,21 @@ document.getElementById('next-day').onclick = () => shiftDay(1);
 document.getElementById('today').onclick = () => { const t = new Date(); state.m = t.getMonth() + 1; state.d = t.getDate(); if (state.view === 'stats') state.view = 'solutions'; render(); };
 document.getElementById('shape-seg').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
-  state.shape = b.dataset.shape; save(); render();
+  // The Heart button opens the board at whichever variant was last viewed.
+  state.shape = b.dataset.board === 'heart' ? lastHeart : b.dataset.shape;
+  save(); render();
 };
+document.getElementById('variant-seg').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.shape = lastHeart = b.dataset.shape; save(); render();
+};
+// Comparison scatter: pick which puzzle sits on each axis.
+const scatterX = document.getElementById('scatter-x'), scatterY = document.getElementById('scatter-y');
+const axisOptions = SHAPES.map(k => `<option value="${k}">${SHAPE_LABEL[k]}</option>`).join('');
+scatterX.innerHTML = scatterY.innerHTML = axisOptions;
+scatterX.value = state.sx; scatterY.value = state.sy;
+scatterX.onchange = () => { state.sx = scatterX.value; scatter(); };
+scatterY.onchange = () => { state.sy = scatterY.value; scatter(); };
 document.querySelector('.tabs').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   state.view = b.dataset.view;

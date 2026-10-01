@@ -1,9 +1,13 @@
-"""Brute-force every solution of The Whole Year Puzzle (quilici.us) for Puzzle Shapes 1 and 2.
+"""Brute-force every solution of The Whole Year Puzzle for Shapes 1 and 2 and the Heart board.
 
 For every month/day pair (all 12 x 31, including dates that don't exist like Feb 30), the two
-date cells are left uncovered and every tiling of the remaining 41 cells is enumerated.
+date cells are left uncovered and every tiling of the remaining cells is enumerated.
 
 Also counts tilings for every pair of uncovered cells (not just month + day), for the statistics page.
+
+Shapes 1 and 2 are the two quilici.us boards. The Heart board is an original layout (from the
+calendar-puzzle-designs search); it ships as two variants that share the board but use different
+piece sets, so the site offers them as "Set 1" and "Set 2" once the Heart board is selected.
 
 Output: docs/data.js, which defines `window.PUZZLE_DATA` for the web viewer. Each solution is a
 string with one character per board cell (in `cells` order): the piece index, or '.' for the two
@@ -19,12 +23,55 @@ from multiprocessing import Pool
 
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-# Both shapes: months in rows 0-1 (6 per row), days 1-28 in rows 2-5 (7 per row).
-# They differ only in where days 29-31 sit on row 6.
+# The Heart board (key heart_d_fix in calendar-puzzle-designs). 9 wide, 7 tall, 43 cells, no fillers.
+# Site order: the 12 month cells (the two square lobes, Jan-Jun left, Jul-Dec right), then days 1-31
+# running in reading order down the body. These are (row, col) with the same ordering the search used.
+HEART_CELLS = [
+    (0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3), (0, 5), (0, 6), (0, 7), (1, 5), (1, 6), (1, 7),
+    (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8),
+    (3, 0), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8),
+    (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7),
+    (5, 3), (5, 4), (5, 5), (6, 3), (6, 4), (6, 5),
+]
+
+# Pieces as one canonical orientation each; the solver generates all rotations/reflections.
+# Pentominoes by their standard letter, tetrominoes lower case (the whole-year scheme).
+PIECE_SHAPE = {
+    'F': [(0, 1), (0, 2), (1, 0), (1, 1), (2, 1)],
+    'L': [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],
+    'N': [(0, 0), (0, 1), (0, 2), (1, 2), (1, 3)],
+    'P': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)],
+    'U': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 2)],
+    'V': [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)],
+    'W': [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)],
+    'Y': [(0, 1), (1, 0), (1, 1), (2, 1), (3, 1)],
+    'l': [(0, 0), (0, 1), (0, 2), (1, 0)],
+    'o': [(0, 0), (0, 1), (1, 0), (1, 1)],
+    's': [(0, 0), (0, 1), (1, 1), (1, 2)],
+    't': [(0, 0), (0, 1), (0, 2), (1, 1)],
+}
+
+# The Heart board pieces are coloured by name so a piece looks the same on both variants and in both
+# themes, and no variant ever shows two pieces alike. (Set-1-only N/V/W reuse the colours of the
+# set-2-only F/L/Y, which they never share a board with.)
+HEART_COLORS = {
+    'P': '#f08a24', 'U': '#8b5cf6', 'l': '#3b7ddd', 'o': '#d64545', 's': '#e0b000', 't': '#e0609a',
+    'N': '#27b3c2', 'V': '#a07a55', 'W': '#4fae3f',
+    'F': '#27b3c2', 'L': '#a07a55', 'Y': '#4fae3f',
+}
+
+
+def heart(names):
+    return {'board': 'Heart', 'cells': HEART_CELLS,
+            'colors': {n: HEART_COLORS[n] for n in names},
+            'pieces': {n: PIECE_SHAPE[n] for n in names}}
+
+
+# Shapes 1 and 2: months in rows 0-1 (6 per row), days 1-28 in rows 2-5 (7 per row); they differ
+# only in where days 29-31 sit on row 6. The Heart variants share a board but use different pieces.
 SHAPES = {
     'shape1': {
-        'name': 'Shape 1',
-        'row6_start': 2,
+        'name': 'Shape 1', 'row6_start': 2,
         # Alphabetical (L before l); the site shows pieces in this order and colours them by name.
         'pieces': {
             'L': [(0, 1), (1, 1), (2, 1), (3, 0), (3, 1)],
@@ -39,8 +86,7 @@ SHAPES = {
         },
     },
     'shape2': {
-        'name': 'Shape 2',
-        'row6_start': 0,
+        'name': 'Shape 2', 'row6_start': 0,
         'pieces': {
             'L': [(0, 0), (1, 0), (1, 1), (1, 2), (1, 3)],
             'N': [(0, 0), (1, 0), (1, 1), (2, 1), (3, 1)],
@@ -52,10 +98,19 @@ SHAPES = {
             'Z': [(0, 1), (0, 2), (1, 1), (2, 0), (2, 1)],
         },
     },
+    # Same board, two piece sets found by the design search (difference >= 3 pieces).
+    'heart1': {'name': 'Heart · Set 1', 'variant': 'Set 1',
+               **heart(['N', 'P', 'U', 'V', 'W', 'l', 'o', 's', 't'])},
+    'heart2': {'name': 'Heart · Set 2', 'variant': 'Set 2',
+               **heart(['F', 'L', 'P', 'U', 'Y', 'l', 'o', 's', 't'])},
 }
 
 
 def board(shape):
+    if 'cells' in shape:
+        cells = list(shape['cells'])
+        labels = MONTHS + [str(d) for d in range(1, 32)]
+        return cells, labels
     s = shape['row6_start']
     cells = [(r, c) for r in range(2) for c in range(6)] + \
             [(r, c) for r in range(2, 6) for c in range(7)] + [(6, s + i) for i in range(3)]
@@ -78,17 +133,30 @@ def orientations(shape):
 
 
 def build_placements(shape):
-    """placements[cell] = [(piece_index, orientation_index, mask)] whose lowest cell is `cell`."""
+    """placements[cell] = [(piece_index, orientation_index, mask)] whose lowest cell is `cell`.
+
+    Each orientation is anchored over the whole bounding box, not only over board cells: a piece
+    can sit entirely on the board while its normalised (0, 0) corner (which need not be one of its
+    own cells) lands off the board or in a hole. That happens on a concave board like the Heart, so
+    anchoring only at board cells would miss real placements.
+    """
     cells, _ = board(shape)
     idx = {rc: i for i, rc in enumerate(cells)}
+    height = max(r for r, _ in cells) + 1
+    width = max(c for _, c in cells) + 1
     placements = [[] for _ in cells]
     for pi, pts in enumerate(shape['pieces'].values()):
+        seen = set()
         for oi, o in enumerate(orientations(pts)):
-            for r0, c0 in cells:
-                ids = [idx.get((r0 + r, c0 + c)) for r, c in o]
-                if None not in ids:
-                    mask = sum(1 << i for i in ids)
-                    placements[min(ids)].append((pi, oi, mask))
+            for r0 in range(-7, height):
+                for c0 in range(-7, width):
+                    ids = [idx.get((r0 + r, c0 + c)) for r, c in o]
+                    if None not in ids:
+                        mask = sum(1 << i for i in ids)
+                        if mask in seen:
+                            continue
+                        seen.add(mask)
+                        placements[min(ids)].append((pi, oi, mask))
     return placements
 
 
@@ -150,13 +218,15 @@ def main():
     with Pool() as pool:
         for key, shape in SHAPES.items():
             cells, labels = board(shape)
+            width = max(c for _, c in cells) + 1
+            height = max(r for r, _ in cells) + 1
             jobs = [(key, m, 12 + d) for m in range(12) for d in range(31)]
             results = pool.map(solve_date, jobs, chunksize=4)
             sols = {f'{m + 1}-{d - 11}': r for (_, m, d), r in zip(jobs, results)}
             total = sum(len(v) for v in sols.values())
             print(f'{shape["name"]}: {total:,} solutions across 372 month/day pairs '
                   f'({time.time() - t0:.1f}s)')
-            # Counts for every pair of uncovered cells, in itertools.combinations(range(43), 2) order.
+            # Counts for every pair of uncovered cells, in itertools.combinations(range(n), 2) order.
             pairs = list(combinations(range(len(cells)), 2))
             pair_counts = pool.map(count_pair, [(key, a, b) for a, b in pairs], chunksize=4)
             placements = build_placements(shape)
@@ -165,6 +235,10 @@ def main():
             print(f'{shape["name"]}: counted all {len(pairs)} hole pairs ({time.time() - t0:.1f}s)')
             out[key] = {
                 'name': shape['name'],
+                'board': shape.get('board', shape['name']),
+                'variant': shape.get('variant', ''),
+                'width': width,
+                'height': height,
                 'cells': cells,
                 'labels': labels,
                 'pieces': [{'name': n, 'shape': p, 'orientations': len(orientations(p))}
@@ -173,6 +247,8 @@ def main():
                 'pairs': pair_counts,
                 'possiblePlacements': possible,
             }
+            if 'colors' in shape:
+                out[key]['colors'] = shape['colors']
     os.makedirs(os.path.join(here, 'docs'), exist_ok=True)
     path = os.path.join(here, 'docs', 'data.js')
     with open(path, 'w') as f:
