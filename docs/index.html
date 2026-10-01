@@ -16,8 +16,9 @@
   color-scheme: dark;
   --bg: #173118;        /* neutral-800 */
   --surface: #1c3a1d;
-  --ink: #ffffff;       /* page title and bold text */
+  --ink: #ffffff;       /* page title */
   --heading: #ffffff;   /* section headings */
+  --bold: #ffffff;      /* bold text, as the site's <strong> */
   --ink-2: #90cb92;     /* body text, neutral-300 */
   --muted: #5cb25f;     /* captions, dates, footer: neutral-400 */
   --line: #244c25;      /* neutral-700 */
@@ -47,8 +48,9 @@
   color-scheme: light;
   --bg: #e6dcdc;        /* neutral */
   --surface: #f3eded;
-  --ink: #000000;       /* page title and bold text, neutral-900 */
+  --ink: #000000;       /* page title, neutral-900 */
   --heading: #160000;   /* section headings, neutral-800 */
+  --bold: #3e0000;      /* bold text: the site's <strong> keeps the body colour in light mode */
   --ink-2: #3e0000;     /* body text, neutral-700 */
   --muted: #900000;     /* captions, dates, footer: neutral-500 */
   --line: #d6c6c6;
@@ -78,7 +80,7 @@ body {
 .wrap { max-width: 1180px; margin: 0 auto; }
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; color: var(--heading); }
 h1, .day-title h2, #win h2 { color: var(--ink); }
-b, strong { color: var(--ink); }
+b, strong { color: var(--bold); font-weight: 600; }
 button, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -161,7 +163,7 @@ dialog .icon-btn { width: 32px; }
 .day-title h2 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; font-weight: 800; margin-top: 4px; }
 .day-stat { margin: 12px 0 0; font-size: 20px; line-height: 1.35; color: var(--ink-2); }
 .day-stat + .day-stat { margin-top: 4px; }
-.day-stat b { color: var(--ink); font-weight: 600; }
+.day-stat b { color: var(--bold); font-weight: 600; }
 .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--date); color: var(--date-ink); vertical-align: middle; }
 .boardcard { display: grid; gap: 6px; justify-items: start; }
 .boardcard .cap { font-size: 12px; color: var(--muted); max-width: 250px; }
@@ -179,7 +181,7 @@ dialog .icon-btn { width: 32px; }
 .finder h3 { font-size: 20px; }
 .finder-body { display: grid; gap: 10px; justify-items: start; }
 .finder-body p { margin: 0; color: var(--ink-2); max-width: 60ch; }
-.finder-body p b { color: var(--ink); }
+.finder-body p b { color: var(--bold); }
 .finder-actions { display: flex; gap: 8px; }
 .finder .chips button .ct { color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
 @media (max-width: 560px) { .finder { grid-template-columns: 1fr; } }
@@ -278,7 +280,7 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 #win { text-align: center; width: min(360px, calc(100vw - 32px)); padding: 28px 24px 24px; position: relative; }
 #win h2 { font-size: 34px; font-weight: 800; line-height: 1.1; }
 #win p { margin: 10px 0 20px; font-size: 18px; color: var(--ink-2); }
-#win p b { color: var(--ink); }
+#win p b { color: var(--bold); }
 #win #win-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; }
 .win-actions { display: grid; gap: 8px; }
 .text-btn.primary { background: var(--date); color: var(--date-ink); border-color: var(--date); font-weight: 600; }
