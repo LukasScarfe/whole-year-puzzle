@@ -51,22 +51,24 @@ done until it looks good on both.
 No build step: the site is hand-written `docs/index.html` + generated `docs/data.js`, and the
 Python is stdlib only. Small libraries loaded from a CDN are fine when they clearly help.
 
-## After every change: restart the preview and look at it
+## After every change: restart the preview
 
 The LAN preview runs on raccoon at **http://192.168.1.241:8799/** (`#stats` for the statistics
-page). After any change, restart it and screenshot the result:
+page). After any change, restart it. The user reloads it and looks for themselves, so don't
+screenshot or send images unless asked.
 
 ```sh
 pkill -f "[h]ttp.server 8799"          # bracket so pkill doesn't match its own shell
-cd docs && python3 -m http.server 8799 # run in the background
-/home/lukas/scripts/screenshot.sh "http://192.168.1.241:8799/#stats" out.png 1300 900 1500
+cd docs && python3 -m http.server 8799 # separate call, in the background
 ```
+
+Run the two in separate commands: if they share one command line, pkill matches that shell too.
 
 Port 8798 is FreshRSS — don't use it.
 
 ## Finishing a change
 
-Without asking: edit → restart preview → screenshot → **commit to `main` locally**. Keep
+Without asking: edit → restart preview → **commit to `main` locally**. Keep
 `README.md` (feature list, results table) in sync in the same commit.
 
 Only when asked: push, and update the artifact.
