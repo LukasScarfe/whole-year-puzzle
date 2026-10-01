@@ -21,8 +21,7 @@
   --hatch: #316833;
   --ring: rgba(255, 255, 255, 0.12);
   --focus: #a58ebe;     /* primary-400 */
-  --s1: #47c9d2;        /* teal accent */
-  --s2: #a58ebe;        /* lavender accent */
+  --s1: #a58ebe;        /* lavender, primary-400 */
   --dark: 1;
   --ctl: 36px;
   --gap: 12px;
@@ -48,7 +47,6 @@
   --ring: rgba(22, 0, 0, 0.10);
   --focus: #207e84;
   --s1: #207e84;        /* teal */
-  --s2: #7f5da2;        /* purple */
   --dark: 0;
 }
 
@@ -462,7 +460,7 @@ function readColors() {
   const g = n => cs.getPropertyValue(n).trim();
   C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
         line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
-        hatch: g('--hatch'), s1: g('--s1'), s2: g('--s2'), dark: g('--dark') === '1' };
+        hatch: g('--hatch'), s1: g('--s1'), dark: g('--dark') === '1' };
 }
 /* Piece colours are keyed by piece name, so a piece looks the same on both shapes and in both themes.
    Pieces only one shape has share a colour slot with a similar piece on the other (O/R, S/N, T/Y, l/V). */
