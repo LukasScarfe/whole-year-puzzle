@@ -42,8 +42,9 @@ done until it looks good on both.
 - It is about **the selected shape**. The title is "Statistics of Shape 1" / "Statistics of
   Shape 2". Summary boxes show only the selected shape — no "other shape" subtext, no
   shape-vs-shape boxes.
-- Charts and findings that genuinely compare the shapes (months, days, scatter, "Things the search
-  turned up") stay, showing both side by side.
+- "Interesting finds" is also selected-shape only: easiest/hardest month, date number, real day,
+  and combination (any two open cells, ignoring unsolvable pairs). No subheading.
+- Charts that genuinely compare the shapes (months, days, scatter) stay, showing both side by side.
 
 ## Dependencies
 
