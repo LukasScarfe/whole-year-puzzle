@@ -7,7 +7,7 @@ statistics.
 **Site:** https://lukasscarfe.github.io/whole-year-puzzle/
 
 - **Play:** try the puzzle yourself for the selected shape and date: drag pieces onto the board,
-  rotate and flip them (buttons, tapping a selected piece, or R / Shift+R / F / V). When it's solved,
+  rotate and flip them (buttons, tapping a selected piece, or A / D to rotate, W / S to flip, Space to send back to the tray). When it's solved,
   confetti and a popup tell you which numbered solution you found, open it in Solutions, or share it:
   one link to try the same date yourself and a separate, clearly marked spoiler link to your solution.
 - **Solutions:** pick a shape and a date to see every solution, ordered by the piece in each cell

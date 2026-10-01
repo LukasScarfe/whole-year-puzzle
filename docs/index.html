@@ -334,14 +334,14 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
       <svg id="play-board" aria-label="Puzzle board"></svg>
       <div class="play-side">
         <div class="play-tools">
-          <button class="text-btn" id="play-ccw">&#8634; Rotate left</button>
-          <button class="text-btn" id="play-cw">&#8635; Rotate right</button>
-          <button class="text-btn" id="play-flip">&#8644; Flip horizontal</button>
-          <button class="text-btn" id="play-flipv">&#8645; Flip vertical</button>
+          <button class="text-btn" id="play-ccw" title="Rotate left (A)">&#8634; Rotate left</button>
+          <button class="text-btn" id="play-cw" title="Rotate right (D)">&#8635; Rotate right</button>
+          <button class="text-btn" id="play-flip" title="Flip horizontal (S)">&#8644; Flip horizontal</button>
+          <button class="text-btn" id="play-flipv" title="Flip vertical (W)">&#8645; Flip vertical</button>
           <button class="text-btn" id="play-clear">Clear board</button>
         </div>
         <div class="tray" id="tray"></div>
-        <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: R rotate, Shift+R rotate back, F flip horizontal, V flip vertical, Delete returns it to the tray.</p>
+        <p class="play-hint">Drag pieces onto the board. Tap a piece to select it, tap it again to rotate. Keys: A / D rotate left / right, W flip vertical, S flip horizontal, Space returns it to the tray.</p>
       </div>
     </div>
   </div>
@@ -941,7 +941,7 @@ function renderPlay() {
   const k = state.shape, s = S[k], { m, d } = state;
   if (P.drag) cancelDrag(false);
   if (P.id !== `${k}:${m}-${d}`) playReset();
-  if (playSolved()) P.sel = null;
+  if (playSolved() && !P.won) P.sel = null;  // drop the outline at the moment it's solved, not after
   const n = s.counts[key(m, d)];
   document.getElementById('play-title').textContent = `${MONTHS[m - 1]} ${d}`;
   document.getElementById('play-count').innerHTML = `<b class="num">${fmt(n)}</b> ${n === 1 ? 'solution' : 'solutions'} to find` +
@@ -1193,11 +1193,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (P.drag) cancelDrag(); else if (P.sel !== null) { P.sel = null; renderPlay(); } return; }
   const p = P.drag && P.drag.moved ? P.drag.p : P.sel;
   if (p === null) return;
-  const k = e.key.toLowerCase();
-  if (k === 'r') turn(p, e.shiftKey ? 'ccw' : 'cw');
-  else if (k === 'f') turn(p, 'flip');
-  else if (k === 'v') turn(p, 'flipv');
-  else if ((e.key === 'Delete' || e.key === 'Backspace') && !P.drag && P.pieces[p].at) { P.pieces[p].at = null; renderPlay(); }
+  // WASD + Space, so one hand stays on the keyboard while the other drags.
+  const k = e.key.toLowerCase(), how = { a: 'ccw', d: 'cw', w: 'flipv', s: 'flip' }[k];
+  if (how) turn(p, how);
+  else if (e.key === ' ') { if (!P.drag && P.pieces[p].at) { P.pieces[p].at = null; renderPlay(); } }
   else return;
   e.preventDefault();
 });
