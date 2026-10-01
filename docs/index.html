@@ -16,9 +16,10 @@
   color-scheme: dark;
   --bg: #173118;        /* neutral-800 */
   --surface: #1c3a1d;
-  --ink: #ffffff;       /* headings */
+  --ink: #ffffff;       /* page title and bold text */
+  --heading: #ffffff;   /* section headings */
   --ink-2: #90cb92;     /* body text, neutral-300 */
-  --muted: #5cb25f;     /* neutral-400 */
+  --muted: #5cb25f;     /* captions, dates, footer: neutral-400 */
   --line: #244c25;      /* neutral-700 */
   --axis: #316833;      /* neutral-600 */
   --cell: #244c25;
@@ -46,9 +47,10 @@
   color-scheme: light;
   --bg: #e6dcdc;        /* neutral */
   --surface: #f3eded;
-  --ink: #160000;       /* neutral-800 */
-  --ink-2: #3e0000;     /* neutral-700 */
-  --muted: #6f6f6f;     /* secondary-700 */
+  --ink: #000000;       /* page title and bold text, neutral-900 */
+  --heading: #160000;   /* section headings, neutral-800 */
+  --ink-2: #3e0000;     /* body text, neutral-700 */
+  --muted: #900000;     /* captions, dates, footer: neutral-500 */
   --line: #d6c6c6;
   --axis: #bca6a6;
   --cell: #d9cccc;
@@ -69,12 +71,14 @@
 * { box-sizing: border-box; }
 body {
   background: var(--bg);
-  color: var(--ink);
+  color: var(--ink-2);
   font: 15px/1.5 var(--font-body);
   padding: 0 16px 64px;
 }
 .wrap { max-width: 1180px; margin: 0 auto; }
-h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; color: var(--heading); }
+h1, .day-title h2, #win h2 { color: var(--ink); }
+b, strong { color: var(--ink); }
 button, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -192,7 +196,7 @@ dialog .icon-btn { width: 32px; }
 .sol:hover span { color: var(--ink); }
 
 dialog {
-  border: 0; border-radius: 12px; padding: 20px; background: var(--surface); color: var(--ink);
+  border: 0; border-radius: 12px; padding: 20px; background: var(--surface); color: var(--ink-2);
   box-shadow: 0 20px 60px rgba(0,0,0,.35); max-width: calc(100vw - 32px);
 }
 dialog::backdrop { background: rgba(10, 11, 12, .55); }
@@ -210,7 +214,7 @@ dialog .dfoot { display: flex; justify-content: center; margin-top: 14px; }
 /* Tiles share their row's label/value/subtext tracks, so numbers line up even when a label wraps. */
 .tile { background: var(--surface); padding: 14px 16px; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
 .tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
-.tile .v { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
+.tile .v { color: var(--ink); font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
 .tile .s { font-size: 13px; color: var(--ink-2); }
 button.link { border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--axis); text-underline-offset: 3px; }
 
@@ -226,14 +230,14 @@ svg text { font-family: var(--font-body); }
 .keys i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .ramp { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .ramp .bar { width: 120px; height: 10px; border-radius: 3px; position: relative; }
-.ramp .tick { position: absolute; top: 0; height: 10px; width: 1px; background: var(--ink); opacity: .55; font-style: normal; }
-.ramp .tick span { position: absolute; top: 12px; left: 0; transform: translateX(-50%); font-size: 11px; line-height: 1; color: var(--ink); }
+.ramp .tick { position: absolute; top: 0; height: 10px; width: 1px; background: color-mix(in srgb, var(--ink) 55%, transparent); font-style: normal; }
+.ramp .tick span { position: absolute; top: 12px; left: 0; transform: translateX(-50%); font-size: 11px; line-height: 1; color: var(--muted); }
 .ramp.has-ticks { padding-bottom: 13px; }
 
 .insights { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
 .insight { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
-.insight .v { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1.1; }
-.insight h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.insight .v { color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1.1; }
+.insight h4 { margin: 0; font-size: 15px; font-weight: 600; color: var(--heading); }
 .insight p { margin: 0; font-size: 14px; color: var(--ink-2); }
 table.rank { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.rank th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
@@ -290,7 +294,7 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 }
 footer.src { margin-top: 40px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
 footer.src p { margin: 0; }
-footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
+footer.src .ai-note { margin-top: 18px; font-size: 10px; }
 
 @media (max-width: 1100px) {
   .day-head { grid-template-columns: auto auto; justify-content: start; }
