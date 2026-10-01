@@ -15,7 +15,8 @@ existing tokens, not new colours or fonts.
   **both** themes.
 - **Text colours** follow the website's computed styles: body text `--ink-2` (light green / dark
   red), page title and bold `--ink` (white / black), section headings `--heading`, captions and
-  footer `--muted` (the site's date/meta colour). No grey text and no opacity-faded text.
+  footer `--muted` (the site's date/meta colour). No grey text; the only opacity-faded text is the
+  footer AI note, kept quiet on purpose.
 - **Fonts** are the site's system stacks (`--font-display`, `--font-body`, `--font-mono`). No web
   fonts. Headings are extrabold (800) like the website.
 - **Logos** match the theme: `logo-dark.png` (purple/green) in dark, `logo-light.png` (red/cyan)
