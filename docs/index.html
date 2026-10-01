@@ -191,7 +191,7 @@ dialog .dnav { display: flex; gap: 6px; }
 .tile .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
 .tile .v { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
 .tile .s { font-size: 13px; color: var(--ink-2); }
-.tile button.link { border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--axis); text-underline-offset: 3px; }
+button.link { border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--axis); text-underline-offset: 3px; }
 
 section.chart { padding-block: 28px 8px; border-top: 1px solid var(--line); margin-top: 24px; }
 section.chart > header { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
@@ -323,7 +323,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     <div class="tiles" id="tiles"></div>
 
     <section class="chart">
-      <header><div><h3>Things the search turned up</h3><p>Worked out from every solution of both shapes.</p></div></header>
+      <header><div><h3>Interesting finds</h3></div></header>
       <div class="insights" id="insights"></div>
     </section>
 
@@ -839,7 +839,7 @@ function renderStats() {
   pieces(k);
   pairMatrix(k);
   impossible();
-  insights();
+  insights(k);
 }
 
 /* ---------- all hole pairs ---------- */
@@ -855,33 +855,12 @@ function pairInfo(k) {
   const n = s.cells.length, at = pairIndex(n), P = s.pairs;
   const get = (a, b) => a < b ? P[at[a][b]] : P[at[b][a]];
   const kind = (a, b) => (a < 12) + (b < 12);  // 2 = both months, 1 = month + day, 0 = both days
-  let total = 0, dates = 0, best = null;
-  const zero = [];
+  let total = 0, dates = 0;
   for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
     const v = get(a, b); total += v;
     if (kind(a, b) === 1) dates += v;
-    if (!v) zero.push([a, b]);
-    if (!best || v > best[2]) best = [a, b, v];
   }
-  // Does leaving a and b open wall off a pocket smaller than the smallest piece?
-  const minPiece = Math.min(...s.pieces.map(p => p.shape.length));
-  const trapped = (a, b) => {
-    const seen = new Set([a, b]);
-    for (let i = 0; i < n; i++) {
-      if (seen.has(i)) continue;
-      const comp = [i]; seen.add(i);
-      for (let j = 0; j < comp.length; j++) {
-        const [r, c] = s.cells[comp[j]];
-        for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const q = s.at[(r + dr) * 7 + (c + dc)];
-          if (r + dr >= 0 && r + dr < 7 && c + dc >= 0 && c + dc < 7 && q !== undefined && !seen.has(q)) { seen.add(q); comp.push(q); }
-        }
-      }
-      if (comp.length < minPiece) return true;
-    }
-    return false;
-  };
-  return s.pairInfo = { get, total, dates, best, zero, zeroTrapped: zero.filter(([a, b]) => trapped(a, b)).length, n };
+  return s.pairInfo = { get, total, dates, n };
 }
 function pairMatrix(k) {
   const s = S[k], pi = pairInfo(k), n = pi.n;
@@ -916,105 +895,38 @@ function pairMatrix(k) {
 }
 
 /* ---------- findings ---------- */
-function rotationClass(pts) {
-  const out = new Set(); let q = pts;
-  for (let t = 0; t < 4; t++) {
-    q = q.map(([r, c]) => [c, -r]);
-    const r0 = Math.min(...q.map(x => x[0])), c0 = Math.min(...q.map(x => x[1]));
-    out.add(q.map(([r, c]) => (r - r0) + ',' + (c - c0)).sort().join(';'));
-  }
-  return out;
-}
-function extraStats(k) {
-  const s = S[k];
-  if (s.extra) return s.extra;
-  const st = computeStats(k), NP = s.pieces.length;
-  // Face-up share for pieces whose mirror image is a different piece.
-  const chiral = [];
-  s.pieces.forEach((p, i) => {
-    const up = rotationClass(p.shape), down = rotationClass(p.shape.map(([r, c]) => [r, -c]));
-    if ([...up].some(x => down.has(x))) return;
-    let n = 0; for (const [kk, v] of st.orient[i]) if (up.has(kk)) n += v;
-    chiral.push({ name: p.name, i, up: n / st.N });
-  });
-  // Placements that are identical in every solution of a date, and placements never used.
-  const forced = [], used = Array.from({ length: NP }, () => new Set());
-  for (const { m, d } of s.real) {
-    const sols = s.solutions[key(m, d)];
-    const cellsOf = sol => { const o = Array.from({ length: NP }, () => []); for (let i = 0; i < sol.length; i++) if (sol[i] !== '.') o[+sol[i]].push(i); return o.map(x => x.join(',')); };
-    const first = cellsOf(sols[0]);
-    const same = first.map(() => true);
-    for (const sol of sols) {
-      const c = cellsOf(sol);
-      c.forEach((x, p) => { used[p].add(x); if (x !== first[p]) same[p] = false; });
-    }
-    same.forEach((v, p) => { if (v) forced.push({ m, d, piece: s.pieces[p].name, n: sols.length }); });
-  }
-  const possible = s.possiblePlacements.reduce((a, b) => a + b, 0), usedN = used.reduce((a, u) => a + u.size, 0);
-  // Checkerboard colour of the two holes (Jan is a light square).
-  const col = i => (s.cells[i][0] + s.cells[i][1]) % 2;
-  const byCol = { light: [], dark: [], mixed: [] };
-  for (const { m, d, n } of s.real) {
-    const a = col(monthCell(m)), b = col(dayCell(d));
-    byCol[a !== b ? 'mixed' : a ? 'dark' : 'light'].push(n);
-  }
-  const avg = xs => xs.reduce((p, q) => p + q, 0) / xs.length;
-  return s.extra = { chiral, forced, possible, usedN, colour: { light: avg(byCol.light), dark: avg(byCol.dark), mixed: avg(byCol.mixed) } };
-}
-function insights() {
-  const out = [];
-  const add = (v, h, p) => out.push(`<div class="insight"><div class="v num">${v}</div><h4>${h}</h4><p>${p}</p></div>`);
-  const E = { shape1: extraStats('shape1'), shape2: extraStats('shape2') };
-  const PI = { shape1: pairInfo('shape1'), shape2: pairInfo('shape2') };
-  const lab = (k, [a, b]) => `${S[k].labels[a]} + ${S[k].labels[b]}`;
+function insights(k) {
+  const s = S[k], out = [];
+  const go = (m, d) => `<button class="link" data-go="${m}-${d}">${dateName(m, d)}</button>`;
+  const add = (v, h, p) => out.push(`<div class="insight"><div class="v">${v}</div><h4>${h}</h4><p>${p}</p></div>`);
+  // All items tied for the top/bottom value.
+  const ends = items => {
+    const by = [...items].sort((x, y) => x.n - y.n);
+    return { lo: by.filter(x => x.n === by[0].n), hi: by.filter(x => x.n === by[by.length - 1].n).reverse() };
+  };
+  const avg = xs => xs.reduce((a, x) => a + x.n, 0) / xs.length;
+  const sols = n => `${fmt(n)} ${n === 1 ? 'solution' : 'solutions'}`;
 
-  // 1. Unsolvable pairs.
-  add(`${PI.shape1.zero.length} + ${PI.shape2.zero.length}`, 'Hole pairs with no solution at all',
-    `Every one of the 366 dates is solvable, but a few pairs of open cells are not. None of them is a month + day, so no date is lost. ` +
-    `Shape 1: ${PI.shape1.zero.map(z => lab('shape1', z)).join(', ')}. Shape 2: ${PI.shape2.zero.map(z => lab('shape2', z)).join(', ')}. ` +
-    `${PI.shape1.zeroTrapped + PI.shape2.zeroTrapped} of these ${PI.shape1.zero.length + PI.shape2.zero.length} wall off a pocket of cells too small for any piece.`);
+  const months = ends(MONTHS.map((name, i) => ({ name, n: avg(s.real.filter(x => x.m === i + 1)) })));
+  const days = ends(Array.from({ length: 31 }, (_, i) => ({ name: ord(i + 1), n: avg(s.real.filter(x => x.d === i + 1)) })));
+  const dates = ends(s.real);
+  // Any two open cells (two months, two days, or a month and a day), ignoring pairs with no solution.
+  const pi = pairInfo(k), pairs = [];
+  for (let a = 0; a < pi.n; a++) for (let b = a + 1; b < pi.n; b++) { const n = pi.get(a, b); if (n) pairs.push({ a, b, n }); }
+  const combos = ends(pairs);
 
-  // 2. Best pair beats best date.
-  for (const k of SHAPES) {
-    const b = PI[k].best, hi = S[k].sorted[S[k].sorted.length - 1];
-    add(fmt(b[2]), `${S[k].name}'s most flexible pair isn't a date`,
-      `Leaving <b>${lab(k, b)}</b> open allows ${fmt(b[2])} tilings, more than the best real date (${dateName(hi.m, hi.d)}, ${fmt(hi.n)}).`);
-  }
-
-  // 3. Hardest day number.
-  const dayAvg = k => { const e = computeStats(k).cellEffect; let best = 12; for (let i = 12; i < 43; i++) if (e[i] < e[best]) best = i; return [best - 11, e[best]]; };
-  const [d1, a1] = dayAvg('shape1'), [d2, a2] = dayAvg('shape2');
-  add(d1 === d2 ? `Day ${d1}` : `${d1} / ${d2}`, d1 === d2 ? `The ${ord(d1)} is the hardest day on both shapes` : 'The hardest day number',
-    `Averaged over all months, the ${ord(d1)} gives ${a1.toFixed(0)} solutions on Shape 1${d1 === d2 ? '' : ` and the ${ord(d2)}`} ${d1 === d2 ? 'and' : ''} ${a2.toFixed(0)} on Shape 2. ` +
-    (d1 === 6 && d2 === 6 ? `Its cell sits right next to the corner cell 7 under the board's notch, so leaving it open makes that corner awkward to fill.` : ''));
-
-  // 4. Chirality bias.
-  const allChiral = SHAPES.flatMap(k => E[k].chiral.map(c => ({ ...c, k })));
-  const skew = allChiral.sort((a, b) => Math.abs(b.up - 0.5) - Math.abs(a.up - 0.5))[0];
-  const flip = skew.up < 0.5;
-  add(`${Math.round((flip ? 1 - skew.up : skew.up) * 100)}%`, `${S[skew.k].name}'s ${skew.name} piece prefers to be ${flip ? 'flipped' : 'face-up'}`,
-    `Most one-sided pieces split close to 50/50 between face-up and flipped, but the ${skew.name} on ${S[skew.k].name} is placed ${flip ? 'flipped over' : 'face-up'} ` +
-    `(relative to the legend) in ${Math.round((flip ? 1 - skew.up : skew.up) * 100)}% of all solutions.`);
-
-  // 5. Forced placements.
-  const forced = SHAPES.flatMap(k => E[k].forced.map(f => ({ ...f, k })));
-  add(forced.length, forced.length === 1 ? 'Date with a piece locked in place' : 'Dates with a piece locked in place',
-    forced.length
-      ? `On ${forced.map(f => `${dateName(f.m, f.d)} (${S[f.k].name})`).join(', ')}, the ${forced.map(f => f.piece).join(', ')} piece sits in exactly the same spot in all ${forced.map(f => f.n).join(', ')} solutions. Find that spot and you're halfway there.`
-      : 'No date forces any piece into a single spot; there is always a choice.');
-
-  // 6. Never-used placements.
-  for (const k of SHAPES) {
-    const e = E[k];
-    add(`${fmt(e.possible - e.usedN)}`, `${S[k].name}: placements no date ever uses`,
-      `The ${S[k].pieces.length} pieces can sit on the board in ${fmt(e.possible)} ways, yet ${fmt(e.possible - e.usedN)} of those never appear in any solution for any real date.`);
-  }
-
-  // 7. Checkerboard colour.
-  const c2 = E.shape2.colour, c1 = E.shape1.colour;
-  add(`${Math.round((c2.light / c2.dark - 1) * 100)}%`, 'Chessboard colour matters on Shape 2',
-    `Colour the board like a chessboard with Jan on a light square. On Shape 2, dates whose two holes are both light average ${c2.light.toFixed(0)} solutions; both dark, only ${c2.dark.toFixed(0)}. ` +
-    `Shape 1 barely cares (${c1.light.toFixed(0)} vs ${c1.dark.toFixed(0)}).`);
+  const avgP = (xs, what) => `Averages ${fmt(Math.round(xs[0].n))} solutions per date across ${what}.`;
+  add(months.hi.map(x => x.name).join(', '), 'Easiest month', avgP(months.hi, 'its days'));
+  add(months.lo.map(x => x.name).join(', '), 'Hardest month', avgP(months.lo, 'its days'));
+  add(days.hi.map(x => `The ${x.name}`).join(', '), 'Easiest date number', avgP(days.hi, 'every month that has it'));
+  add(days.lo.map(x => `The ${x.name}`).join(', '), 'Hardest date number', avgP(days.lo, 'every month that has it'));
+  add(dates.hi.map(x => go(x.m, x.d)).join(', '), 'Easiest day', `${sols(dates.hi[0].n)}, the most of any real date.`);
+  add(dates.lo.map(x => go(x.m, x.d)).join(', '), 'Hardest day', `${sols(dates.lo[0].n)}, the fewest of any real date.`);
+  const comboName = ({ a, b }) => a < 12 && b >= 12 && valid(a + 1, b - 11) ? go(a + 1, b - 11) : `${s.labels[a]} + ${s.labels[b]}`;
+  const comboP = (xs, most) => `${sols(xs[0].n)} with these two cells left open, the ${most ? 'most' : 'fewest'} of any pair` +
+    `${most ? '' : ' that can be solved at all'}, whether or not it spells a date.`;
+  add(combos.hi.map(comboName).join(', '), 'Easiest combination', comboP(combos.hi, true));
+  add(combos.lo.map(comboName).join(', '), 'Hardest combination', comboP(combos.lo, false));
 
   document.getElementById('insights').innerHTML = out.join('');
 }
