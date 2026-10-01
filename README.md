@@ -10,7 +10,7 @@ statistics.
   reading from the top-left. The *Find your solution* picker narrows the list one cell at a time.
 - **Statistics:** calendar heatmap, which months/days/cells are easiest and hardest, the full
   distribution, a Shape 1 vs Shape 2 comparison, where each piece likes to sit, counts for every
-  pair of open cells (not just dates), and the easiest and hardest month, date number, day and
+  pair of open cells (not just dates), and the easiest and hardest month, date number and
   open-cell combination for each shape.
 
 ## Results (366 real dates)
