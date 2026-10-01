@@ -1359,7 +1359,7 @@ function renderStats() {
     ['Median solutions per date', fmt(s.median), ''],
     ['Easiest date', hi.n, highs.map(x => go(x.m, x.d)).join(', ')],
     ['Hardest date', lo.n, lows.map(x => go(x.m, x.d)).join(', ')],
-    ['Easiest vs hardest', `${Math.round(hi.n / lo.n)}×`, ''],
+    ['Easiest vs hardest', `${Math.round(hi.n / lo.n)}×`, 'more solutions'],
   ].map(([k1, v, sub]) => `<div class="tile"><div class="k">${k1}</div><div class="v num">${v}</div><div class="s">${sub}</div></div>`).join('');
 
   calendarHeatmap(k);
