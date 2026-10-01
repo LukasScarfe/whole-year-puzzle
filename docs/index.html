@@ -31,6 +31,8 @@
   --tab-on: #316833;    /* selected toggle, neutral-600: lighter than its track, so it reads as raised */
   --fade: #262626;      /* Blowfish neutral-800: consensus cells fade toward this, not the green ground */
   --none: #000000;      /* hole pairs with no solutions, black in both themes */
+  --hole: #000000;      /* the open date cells, black with white text in both themes: clearly not for pieces */
+  --hole-ink: #ffffff;
   --dark: 1;
   --ctl: 36px;
   --gap: 12px;
@@ -59,6 +61,8 @@
   --tab-on: #f3eded;
   --fade: #f3eded;
   --none: #000000;
+  --hole: #000000;
+  --hole-ink: #ffffff;
   --dark: 0;
 }
 
@@ -553,7 +557,7 @@ function readColors() {
   const g = n => cs.getPropertyValue(n).trim();
   C = { bg: g('--bg'), surface: g('--surface'), ink: g('--ink'), ink2: g('--ink-2'), muted: g('--muted'),
         line: g('--line'), axis: g('--axis'), cell: g('--cell'), date: g('--date'), dateInk: g('--date-ink'),
-        hatch: g('--hatch'), s1: g('--s1'), fade: g('--fade'), none: g('--none'), dark: g('--dark') === '1' };
+        hatch: g('--hatch'), s1: g('--s1'), fade: g('--fade'), none: g('--none'), hole: g('--hole'), holeInk: g('--hole-ink'), dark: g('--dark') === '1' };
 }
 /* Piece colours are keyed by piece name, so a piece looks the same on both shapes and in both themes.
    Pieces only one shape has share a colour slot with a similar piece on the other (O/R, S/N, T/Y, l/V). */
@@ -633,7 +637,7 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 /**
  * Draw a board. fills[i] = colour or null; groups[i] = piece id (cells of the same group are joined);
- * texts[i] = label drawn in the cell; dateCells are the open holes, left as background.
+ * texts[i] = label drawn in the cell; dateCells are the open holes, drawn black with white text.
  */
 function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells = [], alpha = [], textColors = [], ring = null }) {
   const s = S[k];
@@ -656,11 +660,10 @@ function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells =
     if (cellAt(r, c + 1) === undefined) { ctx.moveTo(x + cs, y); ctx.lineTo(x + cs, y + cs); }
   });
   ctx.stroke();
-  // Empty board cells; the open holes stay background.
+  // Empty board cells, and the open holes in black so they read as off-limits.
   s.cells.forEach((rc, i) => {
-    if (dateCells.includes(i)) return;
     const [x, y] = pos[i];
-    ctx.fillStyle = C.cell;
+    ctx.fillStyle = dateCells.includes(i) ? C.hole : C.cell;
     roundRect(ctx, x + g, y + g, cs - 2 * g, cs - 2 * g, Math.max(1, cs * 0.12));
   });
   // Pieces, joined across shared edges. Each piece is one path filled once: filling its cells
@@ -690,7 +693,7 @@ function drawBoard(cv, k, { cs, fills = [], groups = [], texts = [], dateCells =
     const [x, y] = pos[i];
     const isDate = dateCells.includes(i);
     ctx.font = `${isDate ? 600 : 400} ${fs}px ${getComputedStyle(document.body).getPropertyValue('--font-mono') || 'monospace'}`;
-    ctx.fillStyle = textColors[i] || (isDate ? C.ink : C.muted);
+    ctx.fillStyle = isDate ? C.holeInk : (textColors[i] || C.muted);
     ctx.fillText(texts[i], x + cs / 2, y + cs / 2 + 0.5);
   });
   if (ring != null) {
@@ -978,8 +981,8 @@ function drawPlayBoard() {
     if (cellAt(r, c - 1) === undefined) edge += `M${x} ${y}v${cs}`;
     if (cellAt(r, c + 1) === undefined) edge += `M${x + cs} ${y}v${cs}`;
     const isDate = dc.includes(i);
-    if (!isDate) cells += `<rect x="${x + g}" y="${y + g}" width="${cs - 2 * g}" height="${cs - 2 * g}" rx="${Math.max(1, cs * 0.12)}" fill="${C.cell}"/>`;
-    labels += `<text x="${x + cs / 2}" y="${y + cs / 2 + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="${isDate ? 600 : 400}" fill="${isDate ? C.ink : C.muted}">${s.labels[i]}</text>`;
+    cells += `<rect x="${x + g}" y="${y + g}" width="${cs - 2 * g}" height="${cs - 2 * g}" rx="${Math.max(1, cs * 0.12)}" fill="${isDate ? C.hole : C.cell}"/>`;
+    labels += `<text x="${x + cs / 2}" y="${y + cs / 2 + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="${isDate ? 600 : 400}" fill="${isDate ? C.holeInk : C.muted}">${s.labels[i]}</text>`;
   });
   const pieces = P.pieces.map((q, p) => q.at ? pieceSvgPath(p, cs, q.at[1] * cs, q.at[0] * cs) : '').join('');
   svg.innerHTML =
