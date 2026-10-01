@@ -35,8 +35,10 @@ done until it looks good on both.
 
 ## Content conventions
 
-- **Naming:** always "Shape 1" / "Shape 2" on the site — never "Puzzle 1" or "Puzzle Shape 1". The
-  names come from `name` in `solve.py` (and so `data.js`).
+- **Naming:** always "Shape 1" / "Shape 2" / "Heart" on the site — never "Puzzle 1", "Puzzle Shape 1"
+  or "Pointed Heart". The names come from `name` in `solve.py` (and so `data.js`). The Heart has one
+  piece set (F L N P Z l o s t, from calendar-puzzle-designs' Pointed Heart); the old two-set keys
+  `heart1` / `heart2` survive only as aliases so published links still open the Heart.
 - **Dates:** short month + day, e.g. "Jan 25".
 - **Numbers:** whole numbers (floor/round) everywhere, except where a fraction is the point, like
   a ratio. Thousands separators via `fmt()`.
@@ -54,16 +56,18 @@ done until it looks good on both.
 - "Interesting finds" is also selected-shape only: easiest/hardest month, date number and
   combination (any two open cells, ignoring unsolvable pairs). No subheading.
 - Every chart shows the selected shape only (board cells, months, days, etc.); captions don't name
-  the shape, since it's obvious from the selector. The two exceptions show both shapes: "Dates
-  that don't exist" (a small table) and "How do the Shapes compare?" (the scatter, last on the page,
-  on one shared log scale for both axes).
+  the shape, since it's obvious from the selector. The two exceptions show every puzzle: "Dates
+  that don't exist" (a small table) and the comparison (last on the page): a 2D scatter of any two
+  puzzles picked by Horizontal / Vertical dropdowns, or, behind a button, a 3D scatter with one
+  puzzle per axis (hand-drawn SVG, no library: drag turns, wheel / pinch / +− zoom, Reset). Both use
+  one shared log scale on every axis.
 
 ## Shared links and previews
 
-The Play win popup's Share text links to `docs/shape1/` or `docs/shape2/` (`#play/9-30` to try it,
+The Play win popup's Share text links to `docs/shape1/`, `docs/shape2/` or `docs/heart/` (`#play/9-30` to try it,
 `#solutions/9-30/20` for the spoiler), always on the public site. Those pages exist only for their
 link-preview tags, which show that shape's empty board, and forward to the main page. The preview
-images `docs/og-shape1.png` / `og-shape2.png` come from the page's `?og=shape1` mode. If the board's
+images `docs/og-shape1.png` / `og-shape2.png` / `og-heart.png` come from the page's `?og=shape1` mode. If the board's
 look changes, regenerate them with the preview running:
 
 ```sh

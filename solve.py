@@ -5,9 +5,8 @@ date cells are left uncovered and every tiling of the remaining cells is enumera
 
 Also counts tilings for every pair of uncovered cells (not just month + day), for the statistics page.
 
-Shapes 1 and 2 are the two quilici.us boards. The Heart board is an original layout (from the
-calendar-puzzle-designs search); it ships as two variants that share the board but use different
-piece sets, so the site offers them as "Set 1" and "Set 2" once the Heart board is selected.
+Shapes 1 and 2 are the two quilici.us boards. The Heart board is an original layout with one piece
+set, both from the calendar-puzzle-designs search.
 
 Output: docs/data.js, which defines `window.PUZZLE_DATA` for the web viewer. Each solution is a
 string with one character per board cell (in `cells` order): the piece index, or '.' for the two
@@ -34,41 +33,28 @@ HEART_CELLS = [
     (5, 3), (5, 4), (5, 5), (6, 3), (6, 4), (6, 5),
 ]
 
-# Pieces as one canonical orientation each; the solver generates all rotations/reflections.
-# Pentominoes by their standard letter, tetrominoes lower case (the whole-year scheme).
-PIECE_SHAPE = {
+# The Heart pieces as one canonical orientation each; the solver generates all rotations/reflections.
+# Pentominoes by their standard letter, tetrominoes lower case. Alphabetical (L before l).
+# Coloured by name per shape (`colors`), since the Heart's pieces aren't shared with Shapes 1 and 2.
+HEART_PIECES = {
     'F': [(0, 1), (0, 2), (1, 0), (1, 1), (2, 1)],
     'L': [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],
     'N': [(0, 0), (0, 1), (0, 2), (1, 2), (1, 3)],
     'P': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)],
-    'U': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 2)],
-    'V': [(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)],
-    'W': [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)],
-    'Y': [(0, 1), (1, 0), (1, 1), (2, 1), (3, 1)],
+    'Z': [(0, 0), (0, 1), (1, 1), (2, 1), (2, 2)],
     'l': [(0, 0), (0, 1), (0, 2), (1, 0)],
     'o': [(0, 0), (0, 1), (1, 0), (1, 1)],
     's': [(0, 0), (0, 1), (1, 1), (1, 2)],
     't': [(0, 0), (0, 1), (0, 2), (1, 1)],
 }
-
-# The Heart board pieces are coloured by name so a piece looks the same on both variants and in both
-# themes, and no variant ever shows two pieces alike. (Set-1-only N/V/W reuse the colours of the
-# set-2-only F/L/Y, which they never share a board with.)
 HEART_COLORS = {
-    'P': '#f08a24', 'U': '#8b5cf6', 'l': '#3b7ddd', 'o': '#d64545', 's': '#e0b000', 't': '#e0609a',
-    'N': '#27b3c2', 'V': '#a07a55', 'W': '#4fae3f',
-    'F': '#27b3c2', 'L': '#a07a55', 'Y': '#4fae3f',
+    'F': '#27b3c2', 'L': '#a07a55', 'N': '#8b5cf6', 'P': '#f08a24', 'Z': '#4fae3f',
+    'l': '#3b7ddd', 'o': '#d64545', 's': '#e0b000', 't': '#e0609a',
 }
 
 
-def heart(names):
-    return {'board': 'Heart', 'cells': HEART_CELLS,
-            'colors': {n: HEART_COLORS[n] for n in names},
-            'pieces': {n: PIECE_SHAPE[n] for n in names}}
-
-
 # Shapes 1 and 2: months in rows 0-1 (6 per row), days 1-28 in rows 2-5 (7 per row); they differ
-# only in where days 29-31 sit on row 6. The Heart variants share a board but use different pieces.
+# only in where days 29-31 sit on row 6.
 SHAPES = {
     'shape1': {
         'name': 'Shape 1', 'row6_start': 2,
@@ -98,11 +84,7 @@ SHAPES = {
             'Z': [(0, 1), (0, 2), (1, 1), (2, 0), (2, 1)],
         },
     },
-    # Same board, two piece sets found by the design search (difference >= 3 pieces).
-    'heart1': {'name': 'Heart · Set 1', 'variant': 'Set 1',
-               **heart(['N', 'P', 'U', 'V', 'W', 'l', 'o', 's', 't'])},
-    'heart2': {'name': 'Heart · Set 2', 'variant': 'Set 2',
-               **heart(['F', 'L', 'P', 'U', 'Y', 'l', 'o', 's', 't'])},
+    'heart': {'name': 'Heart', 'cells': HEART_CELLS, 'pieces': HEART_PIECES, 'colors': HEART_COLORS},
 }
 
 
@@ -235,8 +217,6 @@ def main():
             print(f'{shape["name"]}: counted all {len(pairs)} hole pairs ({time.time() - t0:.1f}s)')
             out[key] = {
                 'name': shape['name'],
-                'board': shape.get('board', shape['name']),
-                'variant': shape.get('variant', ''),
                 'width': width,
                 'height': height,
                 'cells': cells,

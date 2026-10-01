@@ -1,13 +1,12 @@
 # The Whole Year Puzzle
 
 Every solution to [The Whole Year Puzzle](https://quilici.us/TheWholeYearPuzzle/index.php) calendar
-puzzle, Puzzle Shapes 1 and 2, for every date, plus an original Heart board (two piece-set variants),
-with a static site to browse them and explore statistics.
+puzzle, Puzzle Shapes 1 and 2, for every date, plus an original Heart puzzle, with a static site to
+browse them and explore statistics.
 
 **Site:** https://yearpuzzle.michelleyap.ca/
 
-The board selector offers Shape 1, Shape 2 and **Heart**; picking Heart reveals a *Set 1 / Set 2*
-switch for its two piece sets (the same board, different pieces). Everything below works for whichever
+The board selector offers Shape 1, Shape 2 and **Heart**. Everything below works for whichever
 puzzle is selected.
 
 - **Play:** try the puzzle yourself for the selected shape and date: drag pieces onto the board,
@@ -23,21 +22,22 @@ puzzle is selected.
   distribution, where each piece likes to sit, counts for every pair of open cells (including ones
   that aren't dates), and the easiest and hardest month, date number and open-cell combination, all
   for the selected shape, plus a comparison scatter on log axes whose two axes you can set to any
-  pair of the four puzzles.
+  pair of the three puzzles, or switch to a 3D scatter with one puzzle per axis (drag to turn,
+  scroll / pinch / buttons to zoom, Reset).
 
 ## Results (366 real dates)
 
-| | Shape 1 | Shape 2 | Heart · Set 1 | Heart · Set 2 |
-|---|---|---|---|---|
-| Pieces | 9: L, l (4-cell L), O (square), P, S, T, U, X, Z | 8: L, N, P, R (2×3 rectangle), U, V, Y, Z | 9: N, P, U, V, W, l, o, s, t | 9: F, L, P, U, Y, l, o, s, t |
-| Total solutions | 40,219 | 24,405 | 43,993 | 64,781 |
-| Fewest | May 21 (11) | Oct 6 (7) | Jun 10, Oct 18 (17) | Feb 4 (25) |
-| Most | Jan 28 (734) | Jan 25 (216) | May 13, Nov 15 (384) | Mar 9, Jul 1 (766) |
+| | Shape 1 | Shape 2 | Heart |
+|---|---|---|---|
+| Pieces | 9: L, l (4-cell L), O (square), P, S, T, U, X, Z | 8: L, N, P, R (2×3 rectangle), U, V, Y, Z | 9: F, L, N, P, Z, l, o, s, t |
+| Total solutions | 40,219 | 24,405 | 37,667 |
+| Fewest | May 21 (11) | Oct 6 (7) | May 2, Nov 8 (5) |
+| Most | Jan 28 (734) | Jan 25 (216) | Jan 1, Sep 9 (425) |
 
 Shape 2 is the well-known "DragonFjord" calendar puzzle set, and its totals match published counts.
-The Heart is an original 9×7 board (two square lobes over a body tapering to a three-wide point) from
-the sister [calendar-puzzle-designs](../calendar-puzzle-designs) search. Both sets are solvable on
-every date; they run a bit easier than the two Shapes (higher medians, higher minimums).
+The Heart is an original 9×7 board (two square lobes over a body tapering to a three-wide point) and
+piece set from the sister [calendar-puzzle-designs](../calendar-puzzle-designs) search ("Pointed
+Heart" there). It is solvable on every date; its hardest dates are harder than either Shape's.
 
 Placements are anchored over the whole bounding box, not just over board cells, so pieces whose
 normalised corner lands off a *concave* board (as on the Heart) are still counted — see `solve.py`.
