@@ -13,6 +13,9 @@ existing tokens, not new colours or fonts.
   primary) is the default; light is the site's dusty-pink ground with teal primary. If you need a
   colour that isn't a token, take it from the website's Blowfish palette and add it as a token in
   **both** themes.
+- **Text colours** follow the website's computed styles: body text `--ink-2` (light green / dark
+  red), page title and bold `--ink` (white / black), section headings `--heading`, captions and
+  footer `--muted` (the site's date/meta colour). No grey text and no opacity-faded text.
 - **Fonts** are the site's system stacks (`--font-display`, `--font-body`, `--font-mono`). No web
   fonts. Headings are extrabold (800) like the website.
 - **Logos** match the theme: `logo-dark.png` (purple/green) in dark, `logo-light.png` (red/cyan)
