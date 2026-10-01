@@ -492,7 +492,7 @@ function textOn(hexColor) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.28 ? '#15171a' : '#ffffff';
 }
 // Heat scale (ColorBrewer RdYlBu, colourblind-safe): red = fewest, yellow = middle, blue = most.
-// Dark mode tones down the pale middle so it doesn't glare (and stays apart from white = none).
+// Dark mode tones down the pale middle so it doesn't glare.
 const HEAT = ['#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#e0f3f8', '#abd9e9', '#74add1', '#4575b4'];
 const HEAT_DARK = ['#c4302a', '#e0603c', '#e89a55', '#e8c87a', '#e3e0a0', '#bcd8de', '#8fc0d8', '#6699c7', '#4575b4'];
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -908,13 +908,14 @@ function pairMatrix(k) {
   // Lower triangle: row = later cell, column = earlier cell.
   for (let b = 1; b < n; b++) for (let a = 0; a < b; a++) {
     const v = pi.get(a, b), isDate = (a < 12) !== (b < 12);
-    const fill = v ? seq(scaleLogT(v, lo, mid, hi)) : C.ink;
+    const fill = v ? seq(scaleLogT(v, lo, mid, hi)) : C.bg;  // no solutions: left as the page ground
     out += `<rect x="${L + a * cs + 0.5}" y="${T + b * cs + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5" fill="${fill}"
       data-tip="<b>${s.labels[a]} + ${s.labels[b]}</b> open: ${fmt(v)} solutions${isDate ? '' : '<br>not a calendar date'}"
       ${isDate && valid(a + 1, b - 11) ? `data-go="${a + 1}-${b - 11}" style="cursor:pointer"` : ''}/>`;
   }
-  // The month + day block (real calendar dates) is outlined.
-  out += `<rect x="${L}" y="${T + 12 * cs}" width="${12 * cs}" height="${(n - 12) * cs}" fill="none" stroke="${C.ink}" stroke-width="1.5"/>`;
+  // The month + day block (real calendar dates) is outlined in the page ink (white in dark mode),
+  // drawn just outside the cells so pale cells along it don't wash it out.
+  out += `<rect x="${L - 1}" y="${T + 12 * cs - 1}" width="${12 * cs + 2}" height="${(n - 12) * cs + 2}" fill="none" stroke="${C.ink}" stroke-width="2"/>`;
   const tickCells = [0, 5, 6, 11, 12, 16, 21, 26, 31, 36, 42];
   for (const i of tickCells) {
     out += `<text x="${L - 5}" y="${T + i * cs + cs - 2}" text-anchor="end" font-size="9" fill="${C.muted}">${s.labels[i]}</text>`;
@@ -922,7 +923,7 @@ function pairMatrix(k) {
   }
   out += `<text x="${L + 12 * cs + 6}" y="${T + 12 * cs - 4}" font-size="12" fill="${C.ink}">↙ outlined: month + day (the date settings)</text>`;
   document.getElementById('pairs').innerHTML = out + '</svg>';
-  rampLegend(document.getElementById('pairs-ramp'), lo, hi, `solutions, log scale · ${C.dark ? 'white' : 'black'} = none`, mid, true);
+  rampLegend(document.getElementById('pairs-ramp'), lo, hi, 'solutions, log scale · blank = none', mid, true);
   document.getElementById('pairs-sub').textContent =
     `The board can be tiled with any two cells left open, including two months or two days. Each square is one pair; ` +
     `the outlined block is the ${fmt(12 * 31)} month/day settings, the triangle above it is two months open, and the one to its right two days. ` +
