@@ -1633,11 +1633,11 @@ function scatter() {
   out += `<text x="${L + P / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${C.ink2}">${SHAPE_LABEL[kx]} solutions (log scale) →</text>`;
   out += `<text transform="translate(16,${T + P / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="${C.ink2}">${SHAPE_LABEL[ky]} solutions (log scale) →</text>`;
   // y = x reference line and the two regions it splits.
-  const harderX = xs.filter((x, i) => x < ys[i]).length, harderY = xs.filter((x, i) => x > ys[i]).length, tie = xs.length - harderX - harderY;
+  const moreY = xs.filter((x, i) => x < ys[i]).length, moreX = xs.filter((x, i) => x > ys[i]).length, tie = xs.length - moreY - moreX;
   out += `<line x1="${px(lo)}" y1="${py(lo)}" x2="${px(hi)}" y2="${py(hi)}" stroke="${C.ink2}" stroke-width="1.25" stroke-opacity="0.7"/>`;
   out += `<text transform="translate(${px(at(0.8))},${py(at(0.8)) - 8}) rotate(-45)" text-anchor="middle" font-size="12" fill="${C.ink2}">y = x · same count on both</text>`;
-  out += `<text x="${px(at(0.04))}" y="${py(at(0.62))}" font-size="13" font-weight="600" fill="${C.ink}">Harder on ${SHAPE_LABEL[kx]}</text><text x="${px(at(0.04))}" y="${py(at(0.62)) + 17}" font-size="12" fill="${C.ink2}">${harderX} dates</text>`;
-  out += `<text x="${px(at(0.97))}" y="${py(at(0.2))}" text-anchor="end" font-size="13" font-weight="600" fill="${C.ink}">Harder on ${SHAPE_LABEL[ky]}</text><text x="${px(at(0.97))}" y="${py(at(0.2)) + 17}" text-anchor="end" font-size="12" fill="${C.ink2}">${harderY} dates${tie ? ` · ${tie} tied` : ''}</text>`;
+  out += `<text x="${px(at(0.04))}" y="${py(at(0.62))}" font-size="13" font-weight="600" fill="${C.ink}">More on ${SHAPE_LABEL[ky]}</text><text x="${px(at(0.04))}" y="${py(at(0.62)) + 17}" font-size="12" fill="${C.ink2}">${moreY} dates</text>`;
+  out += `<text x="${px(at(0.97))}" y="${py(at(0.2))}" text-anchor="end" font-size="13" font-weight="600" fill="${C.ink}">More on ${SHAPE_LABEL[kx]}</text><text x="${px(at(0.97))}" y="${py(at(0.2)) + 17}" text-anchor="end" font-size="12" fill="${C.ink2}">${moreX} dates${tie ? ` · ${tie} tied` : ''}</text>`;
   a.forEach((p, i) => {
     out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="4" fill="${C.s1}" fill-opacity="0.75" stroke="${C.surface}" stroke-width="1.5"/>`;
     out += `<circle cx="${px(xs[i])}" cy="${py(ys[i])}" r="8" fill="transparent" data-go="${p.m}-${p.d}" style="cursor:pointer" data-tip="<b>${dateName(p.m, p.d)}</b><br>${SHAPE_LABEL[kx]}: ${xs[i]}<br>${SHAPE_LABEL[ky]}: ${ys[i]}"/>`;
@@ -1669,8 +1669,8 @@ function scatter() {
   document.getElementById('scatter').innerHTML = out + '</svg>';
   const pct = n => Math.round(n / xs.length * 100) + '%';
   document.getElementById('scatter-sub').textContent =
-    `One dot per real date; fewer solutions means harder. ${SHAPE_LABEL[ky]} is harder on ${pct(harderY)} of dates (${harderY}), ` +
-    `${SHAPE_LABEL[kx]} on ${pct(harderX)} (${harderX}), and ${pct(tie)} (${tie}) are tied.`;
+    `One dot per real date. ${SHAPE_LABEL[ky]} has more solutions on ${pct(moreY)} of dates (${moreY}), ` +
+    `${SHAPE_LABEL[kx]} on ${pct(moreX)} (${moreX}), and ${pct(tie)} (${tie}) are tied.`;
 }
 
 /* 3D comparison: one dot per real date at (Shape 1, Shape 2, Heart) solutions, all three axes on one shared
@@ -1735,7 +1735,7 @@ function scatter3d() {
   svg.innerHTML = out;
   document.getElementById('scatter-sub').textContent =
     `One dot per real date, at its solution count on each puzzle (one shared log scale); dots near the dashed line ` +
-    `are about as hard on all three. Drag to turn it, scroll or pinch to zoom.`;
+    `have about the same count on all three. Drag to turn it, scroll or pinch to zoom.`;
 }
 // Drag turns the view, two fingers pinch-zoom, the wheel zooms. A drag never counts as a click on a dot.
 const ZOOM_MIN = 0.6, ZOOM_MAX = 8;

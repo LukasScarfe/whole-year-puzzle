@@ -37,7 +37,7 @@ puzzle is selected.
 Shape 2 is the well-known "DragonFjord" calendar puzzle set, and its totals match published counts.
 The Heart is an original 9×7 board (two square lobes over a body tapering to a three-wide point) and
 piece set from the sister [calendar-puzzle-designs](../calendar-puzzle-designs) search ("Pointed
-Heart" there). It is solvable on every date, with a difficulty range between the two Shapes'.
+Heart" there). It is solvable on every date.
 
 Placements are anchored over the whole bounding box, not just over board cells, so pieces whose
 normalised corner lands off a *concave* board (as on the Heart) are still counted — see `solve.py`.
