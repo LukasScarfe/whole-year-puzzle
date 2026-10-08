@@ -223,7 +223,7 @@ dialog .dhead { display: flex; justify-content: space-between; align-items: cent
 dialog canvas { display: block; max-width: 100%; height: auto; }
 dialog .dnav { display: flex; gap: 6px; }
 dialog .dnav [hidden] { display: none; }
-dialog .dfoot { display: flex; justify-content: center; margin-top: 14px; }
+dialog .dfoot { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
 
 /* ---------- stats view ---------- */
 .stats-intro { padding-block: 28px 8px; max-width: 70ch; }
@@ -546,7 +546,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
     </div>
   </div>
   <canvas id="dlg-canvas"></canvas>
-  <div class="dfoot"><button class="text-btn primary" id="dlg-share">Share!</button></div>
+  <div class="dfoot"><button class="text-btn" id="dlg-emoji">Copy emoji</button><button class="text-btn primary" id="dlg-share">Share!</button></div>
 </dialog>
 <dialog id="win" aria-labelledby="win-title">
   <button class="icon-btn" id="win-close" aria-label="Close">&#10005;</button>
@@ -554,6 +554,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
   <p id="win-line"></p>
   <div class="win-actions">
     <button class="text-btn" id="win-show">See it in Solutions</button>
+    <button class="text-btn" id="win-emoji">Copy emoji</button>
     <button class="text-btn primary" id="win-share" autofocus>Share!</button>
   </div>
 </dialog>
@@ -872,7 +873,7 @@ function renderFinderAndGrid() {
   if (!n) { q.textContent = 'This date has no solutions.'; chips.innerHTML = ''; }
   else if (next === null) {
     q.innerHTML = `Found it: this is <b>solution #${shown[0][0]}</b> of ${fmt(n)}.`;
-    chips.innerHTML = '<button class="text-btn primary" id="finder-share">Share!</button>';
+    chips.innerHTML = '<button class="text-btn" id="finder-emoji">Copy emoji</button><button class="text-btn primary" id="finder-share">Share!</button>';
   } else {
     const tally = {};
     for (const [, x] of shown) tally[x[next]] = (tally[x[next]] || 0) + 1;
@@ -949,6 +950,7 @@ function showDialog(i) {
   drawSolution(document.getElementById('dlg-canvas'), k, sol, cs, true);
   document.querySelectorAll('#dlg-prev, #dlg-next').forEach(b => b.hidden = shown.length < 2);
   document.getElementById('dlg-share').textContent = 'Share!';
+  document.getElementById('dlg-emoji').textContent = 'Copy emoji';
   if (!dlg.open) dlg.showModal();
 }
 document.getElementById('sol-grid').addEventListener('click', e => {
@@ -1117,6 +1119,7 @@ function showWin(party) {
   document.getElementById('win-line').innerHTML = `That's solution <b class="num">#${fmt(R.num)}</b> of ${fmt(R.total)}` +
     (R.time ? `, in <b class="num">${R.time}</b>.` : '.');
   document.getElementById('win-share').textContent = 'Share!';
+  document.getElementById('win-emoji').textContent = 'Copy emoji';
   if (!winDlg.open) winDlg.showModal();
   if (party) confetti();
 }
@@ -1137,6 +1140,9 @@ async function shareSolution(R, btn) {
   if (navigator.share) {
     try { await navigator.share({ text }); return; } catch (err) { if (err.name === 'AbortError') return; }
   }
+  copyText(text, btn);
+}
+async function copyText(text, btn) {
   try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied to clipboard!'; return; } catch (err) {}
   // No clipboard API off https (e.g. the LAN preview): fall back to a hidden textarea and execCommand.
   const ta = document.createElement('textarea');
@@ -1145,11 +1151,30 @@ async function shareSolution(R, btn) {
   btn.textContent = document.execCommand('copy') ? 'Copied to clipboard!' : 'Couldn\'t copy';
   ta.remove();
 }
+/* A solution as rows of coloured squares, for pasting into a chat. Each piece gets the square closest
+   to its colour; the two hues with no square of their own (cyan, pink) get white and a pink heart.
+   Cells off the board are black squares rather than spaces, since no space is as wide as an emoji
+   on every phone; trailing ones are dropped. The open date cells are calendars. */
+const EMOJI_FOR = {
+  '#d64545': '🟥', '#f08a24': '🟧', '#e0b000': '🟨', '#4fae3f': '🟩', '#3b7ddd': '🟦',
+  '#8b5cf6': '🟪', '#a07a55': '🟫', '#27b3c2': '⬜', '#e0609a': '🩷',
+};
+function emojiBoard(k, sol) {
+  const s = S[k], grid = Array.from({ length: s.height }, () => Array(s.width).fill('⬛'));
+  s.cells.forEach(([r, c], i) => {
+    const name = sol[i] === '.' ? null : s.pieces[+sol[i]].name;
+    grid[r][c] = name === null ? '📅' : EMOJI_FOR[(s.colors && s.colors[name]) || PIECE_COLOR[name]];
+  });
+  return grid.map((row, r) => row.slice(0, Math.max(...s.cells.filter(x => x[0] === r).map(x => x[1])) + 1).join('')).join('\n');
+}
 document.getElementById('win-share').onclick = e => shareSolution(P.result, e.currentTarget);
+document.getElementById('win-emoji').onclick = e => copyText(emojiBoard(P.result.k, P.result.sol), e.currentTarget);
+document.getElementById('dlg-emoji').onclick = e => copyText(emojiBoard(state.shape, shown[dlgI][1]), e.currentTarget);
 const solShare = num => ({ k: state.shape, m: state.m, d: state.d, num, total: S[state.shape].counts[key(state.m, state.d)] });
 document.getElementById('dlg-share').onclick = e => shareSolution(solShare(shown[dlgI][0]), e.currentTarget);
 document.getElementById('finder-chips').addEventListener('click', e => {
   if (e.target.id === 'finder-share') shareSolution(solShare(shown[0][0]), e.target);
+  if (e.target.id === 'finder-emoji') copyText(emojiBoard(state.shape, shown[0][1]), e.target);
 });
 
 // A short burst of confetti in the piece colours, drawn above the popup (a popover sits in the top layer
