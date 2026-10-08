@@ -13,7 +13,7 @@ puzzle is selected.
   rotate and flip them (buttons, tapping a selected piece, or A / D to rotate, W / S to flip, Space to send back to the tray). When it's solved,
   confetti and a popup tell you which numbered solution you found, open it in Solutions, or share it:
   one link to try the same date yourself and a separate, clearly marked spoiler link to your solution.
-  *Copy emoji* copies the solution as a grid of coloured squares (📅 for the date) to paste into a chat.
+  *Copy emoji* copies the solution as a grid of coloured squares (hearts for the Heart) to paste into a chat.
   An optional Timer (remembered between visits) starts with your first piece, stops when it's solved,
   and adds your time to the popup and the share text.
 - **Solutions:** pick a shape and a date to see every solution, ordered by the piece in each cell

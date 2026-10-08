@@ -1151,19 +1151,24 @@ async function copyText(text, btn) {
   btn.textContent = document.execCommand('copy') ? 'Copied to clipboard!' : 'Couldn\'t copy';
   ta.remove();
 }
-/* A solution as rows of coloured squares, for pasting into a chat. Each piece gets the square closest
-   to its colour; the two hues with no square of their own (cyan, pink) get white and a pink heart.
-   Cells off the board are black squares rather than spaces, since no space is as wide as an emoji
-   on every phone; trailing ones are dropped. The open date cells are calendars. */
-const EMOJI_FOR = {
+/* A solution as rows of coloured squares (hearts on the Heart), for pasting into a chat. Each piece
+   gets the emoji closest to its colour. Squares have no cyan or pink, so those two are white and a
+   framed square. Cells off the board are black rather than spaces, since no space is as wide as an
+   emoji on every phone; trailing ones are dropped. The open date cells are calendars (white hearts). */
+const EMOJI_SQUARES = {
   '#d64545': '🟥', '#f08a24': '🟧', '#e0b000': '🟨', '#4fae3f': '🟩', '#3b7ddd': '🟦',
-  '#8b5cf6': '🟪', '#a07a55': '🟫', '#27b3c2': '⬜', '#e0609a': '🩷',
+  '#8b5cf6': '🟪', '#a07a55': '🟫', '#27b3c2': '⬜', '#e0609a': '🔳', off: '⬛', date: '📅',
+};
+const EMOJI_HEARTS = {
+  '#d64545': '❤️', '#f08a24': '🧡', '#e0b000': '💛', '#4fae3f': '💚', '#3b7ddd': '💙',
+  '#8b5cf6': '💜', '#a07a55': '🤎', '#27b3c2': '🩵', '#e0609a': '🩷', off: '🖤', date: '🤍',
 };
 function emojiBoard(k, sol) {
-  const s = S[k], grid = Array.from({ length: s.height }, () => Array(s.width).fill('⬛'));
+  const s = S[k], E = k === 'heart' ? EMOJI_HEARTS : EMOJI_SQUARES;
+  const grid = Array.from({ length: s.height }, () => Array(s.width).fill(E.off));
   s.cells.forEach(([r, c], i) => {
     const name = sol[i] === '.' ? null : s.pieces[+sol[i]].name;
-    grid[r][c] = name === null ? '📅' : EMOJI_FOR[(s.colors && s.colors[name]) || PIECE_COLOR[name]];
+    grid[r][c] = name === null ? E.date : E[(s.colors && s.colors[name]) || PIECE_COLOR[name]];
   });
   return grid.map((row, r) => row.slice(0, Math.max(...s.cells.filter(x => x[0] === r).map(x => x[1])) + 1).join('')).join('\n');
 }
