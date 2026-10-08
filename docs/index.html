@@ -1154,14 +1154,14 @@ async function copyText(text, btn) {
 /* A solution as rows of coloured squares (hearts on the Heart), for pasting into a chat. Each piece
    gets the emoji closest to its colour. Squares have no cyan or pink, so those two are white and a
    framed square. Cells off the board are black rather than spaces, since no space is as wide as an
-   emoji on every phone; trailing ones are dropped. The open date cells are calendars (white hearts). */
+   emoji on every phone; trailing ones are dropped. The open date cells are calendars. */
 const EMOJI_SQUARES = {
   '#d64545': '🟥', '#f08a24': '🟧', '#e0b000': '🟨', '#4fae3f': '🟩', '#3b7ddd': '🟦',
   '#8b5cf6': '🟪', '#a07a55': '🟫', '#27b3c2': '⬜', '#e0609a': '🔳', off: '⬛', date: '📅',
 };
 const EMOJI_HEARTS = {
   '#d64545': '❤️', '#f08a24': '🧡', '#e0b000': '💛', '#4fae3f': '💚', '#3b7ddd': '💙',
-  '#8b5cf6': '💜', '#a07a55': '🤎', '#27b3c2': '🩵', '#e0609a': '🩷', off: '🖤', date: '🤍',
+  '#8b5cf6': '💜', '#a07a55': '🤎', '#27b3c2': '🩵', '#e0609a': '🩷', off: '🖤', date: '📅',
 };
 function emojiBoard(k, sol) {
   const s = S[k], E = k === 'heart' ? EMOJI_HEARTS : EMOJI_SQUARES;
