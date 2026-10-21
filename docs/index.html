@@ -22,7 +22,7 @@
   --ink-2: #90cb92;     /* body text, neutral-300 */
   --muted: #5cb25f;     /* captions, dates, footer: neutral-400 */
   --line: #244c25;      /* neutral-700 */
-  --axis: #316833;      /* neutral-600 */
+  --axis: #448a47;      /* between neutral-600 and -400: control borders at 3:1 */
   --cell: #244c25;
   --date: #6b4e88;      /* primary-600, the site's button purple */
   --date-ink: #ffffff;
@@ -54,13 +54,13 @@
   --ink-2: #3e0000;     /* body text, neutral-700 */
   --muted: #900000;     /* captions, dates, footer: neutral-500 */
   --line: #d6c6c6;
-  --axis: #bca6a6;
+  --axis: #937474;      /* control borders at 3:1 */
   --cell: #d9cccc;
   --date: #207e84;      /* primary-600 */
   --date-ink: #ffffff;
   --hatch: #cbbcbc;
   --ring: rgba(22, 0, 0, 0.10);
-  --focus: #207e84;
+  --focus: #185f63;     /* primary-700: links at 5.5:1 */
   --s1: #207e84;        /* teal */
   --tab-on: #f3eded;
   --fade: #f3eded;
@@ -116,7 +116,7 @@ button, select { font: inherit; color: inherit; }
 }
 .seg svg { display: block; flex: none; }
 .tabs button[aria-pressed="true"], .seg button[aria-pressed="true"] {
-  background: var(--tab-on); color: var(--ink); box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
+  background: var(--tab-on); color: var(--ink); font-weight: 650; box-shadow: 0 1px 2px var(--ring), 0 0 0 1px var(--ring);
 }
 /* Borderless icon button, as in the lukasscarfe.com header. */
 .theme-btn { grid-area: theme; justify-self: end; width: var(--ctl); height: var(--ctl); border: 0; background: none; padding: 0; cursor: pointer; color: var(--ink-2); display: inline-grid; place-items: center; }
@@ -275,7 +275,7 @@ table.rank .b { height: 8px; border-radius: 0 4px 4px 0; background: var(--s1); 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips button { border: 1px solid var(--axis); background: var(--surface); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .chips .text-btn { border-radius: 8px; padding: 0 14px; height: 32px; font-size: 14px; }
-.chips button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.chips button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); font-weight: 650; }
 /* One row per orientation, every bar starting at the same x on one shared scale, so lengths compare directly.
    Rows are kept short enough that the list is never taller than the board beside it. */
 .orients { display: grid; grid-template-columns: 28px 4ch minmax(0, 1fr); gap: 4px 10px; align-content: start; align-items: center; font-size: 13px; }
