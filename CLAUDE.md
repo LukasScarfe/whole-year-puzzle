@@ -3,25 +3,35 @@
 `README.md` covers what the project is, the results, and what each file does. This file covers how
 to change it.
 
-## Theming: match lukasscarfe.com
+## Theming: Michelle's style
 
-The site has to look like part of lukasscarfe.com (Hugo + Blowfish theme). Any new UI must use the
+The site lives on michelleyap.ca, so it follows Michelle's style: `~/.claude/design/michelle-style.md`
+and `michelle.css` (Porcelain with cerulean blue, since 2026-11-11). Any new UI must use the
 existing tokens, not new colours or fonts.
 
-- **Colours** come only from the `:root` / `:root[data-theme="light"]` tokens at the top of
-  `docs/index.html`, which are copied from the website's palette. Dark (green ground, purple
-  primary) is the default; light is the site's dusty-pink ground with teal primary. If you need a
-  colour that isn't a token, take it from the website's Blowfish palette and add it as a token in
-  **both** themes.
-- **Text colours** follow the website's computed styles: body text `--ink-2` (light green / dark
-  red), page title `--ink` (white / black), bold `--bold` (weight 600; white / dark red, as the
-  site's `<strong>`), section headings `--heading`, captions and
-  footer `--muted` (the site's date/meta colour). No grey text; the only opacity-faded text is the
-  footer AI note, kept quiet on purpose.
-- **Fonts** are the site's system stacks (`--font-display`, `--font-body`, `--font-mono`). No web
-  fonts. Headings are extrabold (800) like the website.
-- **Logos** match the theme: `logo-dark.png` (purple/green) in dark, `logo-light.png` (red/cyan)
-  in light. Favicon is `favicon-32x32.png`, the website's.
+- **Colours** come only from the `:root` (light) / `:root[data-theme="dark"]` tokens at the top of
+  `docs/index.html`, copied from `michelle.css`. **Light is the default**: a porcelain-white ground
+  with cerulean primary (`--date`). Dark is near-black slate with sky blue. If you need a colour
+  that isn't a token, add it in **both** themes, with text at 4.5:1 or above on `--bg` and
+  `--surface`.
+- **Text colours:**
+  - body text `--ink-2`
+  - page title `--ink`
+  - bold `--bold` (weight 600)
+  - section headings `--heading`
+  - captions and footer `--muted`
+
+  The only opacity-faded text is the footer AI note, kept quiet on purpose.
+- **Fonts:** Literata, self-hosted in `docs/fonts/` (`--font-display` = `--font-body`), with the
+  system mono stack for numbers. Headings are bold (700).
+- **Shapes (Porcelain):**
+  - panels (finder, tiles, insights, tray, dialogs) are `--card-radius` (16px) with `--card-shadow`
+    and no border
+  - buttons and selects are `--radius` (10px) with a faint shadow
+  - toggle tracks are 12px
+- **Masthead:** Michelle's monogram (an italic M on a cerulean disc, `.me .mark`) beside "Michelle
+  Yap". The favicon is the same M: `favicon.svg`, with `favicon-32x32.png` rendered from it.
+- The theme toggle saves `wya-theme`. A head script applies a saved dark choice before first paint.
 - **Pieces** are alphabetical (L before l, as in `solve.py`) and coloured by name via `PIECE_COLOR`,
   so a piece shared by both shapes looks the same everywhere, in both themes.
 - Check every UI change in **both** themes and at phone width.
