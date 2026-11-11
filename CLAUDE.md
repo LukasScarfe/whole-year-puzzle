@@ -29,8 +29,9 @@ existing tokens, not new colours or fonts.
     and no border
   - buttons and selects are `--radius` (10px) with a faint shadow
   - toggle tracks are 12px
-- **Masthead:** Michelle's monogram (an italic M on a cerulean disc, `.me .mark`) beside "Michelle
-  Yap". The favicon is the same M: `favicon.svg`, with `favicon-32x32.png` rendered from it.
+- **Masthead:** Michelle's logo (`.me .mark`, `icon-light-96.png` in light mode, `icon-dark-96.png`
+  in dark) beside "Michelle Yap". Favicons are her set too. All live in `docs/icons/`, copied from
+  `~/.claude/design/michelle/icons/`.
 - The theme toggle saves `wya-theme`. A head script applies a saved dark choice before first paint.
 - **Pieces** are alphabetical (L before l, as in `solve.py`) and coloured by name via `PIECE_COLOR`,
   so a piece shared by both shapes looks the same everywhere, in both themes.

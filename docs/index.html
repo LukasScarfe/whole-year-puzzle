@@ -3,8 +3,9 @@
 <meta charset="utf-8">
 <title>The Whole Year Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" href="icons/favicon.ico" sizes="48x48">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:title" content="The Whole Year Puzzle">
 <meta property="og:description" content="Play the Whole Year Puzzle for any date, see every solution, and explore the statistics.">
 <meta property="og:image" content="https://yearpuzzle.michelleyap.ca/og-shape2.png">
@@ -116,7 +117,10 @@ button, select { font: inherit; color: inherit; }
 .me, .masthead h1 { font-family: var(--font-display); font-size: var(--title); line-height: 1.2; }
 .me { grid-area: me; justify-self: start; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-weight: 500; white-space: nowrap; }
 /* Michelle's monogram: an italic M on a cerulean disc. */
-.me .mark { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; border-radius: 50%; background: var(--date); color: var(--date-ink); font-size: 0.8em; font-style: italic; font-weight: 600; }
+.me .mark { display: inline-block; width: 1.5em; height: 1.5em; flex: none; }
+.me .mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.me .mark .logo-dark, :root[data-theme="dark"] .me .mark .logo-light { display: none; }
+:root[data-theme="dark"] .me .mark .logo-dark { display: block; }
 .masthead h1 { grid-area: title; font-weight: 700; text-align: center; }
 .nav { grid-area: nav; display: flex; gap: var(--gap); }
 .tabs, .seg { display: inline-flex; height: var(--ctl); background: var(--cell); border-radius: 12px; padding: 3px; gap: 2px; }
@@ -359,7 +363,7 @@ footer.src .ai-note { margin-top: 18px; font-size: 10px; opacity: 0.75; }
 <div class="masthead-bar">
   <header class="masthead wrap">
     <span class="me">
-      <span class="mark" aria-hidden="true">M</span>
+      <span class="mark" aria-hidden="true"><img class="logo-light" src="icons/icon-light-96.png" alt=""><img class="logo-dark" src="icons/icon-dark-96.png" alt=""></span>
       <span>Michelle Yap</span>
     </span>
     <h1>The Whole Year Puzzle</h1>
